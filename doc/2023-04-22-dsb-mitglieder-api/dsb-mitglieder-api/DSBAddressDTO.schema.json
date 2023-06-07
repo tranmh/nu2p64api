@@ -1,0 +1,34 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema#",
+    "type": "object",
+    "properties": {
+        "uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "name": {"type": "string"},
+        "name2": {"type": "string"},
+        "street": {"type": "string"},
+        "zip": {"type": "string"},
+        "city": {"type": "string"},
+        "country": {"type": "string"},
+        "email": {
+            "type": "string",
+            "format": "email"
+        },
+        "email2": {
+            "type": "string",
+            "format": "email"
+        },
+        "www": {
+            "type": "string",
+            "format": "uri"
+        },
+        "phone-mobile": {"type": "string"},
+        "phone-home": {"type": "string"},
+        "phone-work": {"type": "string"}
+    },
+    "required": [
+        "uuid"
+    ]
+}

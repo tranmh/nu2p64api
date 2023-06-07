@@ -1,0 +1,24 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema#",
+    "type": "object",
+    "properties": {
+        "uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "firstname": {"type": "string"},
+        "lastname": {"type": "string"},
+        "title": {"type": "string"},
+        "gender": {"enum": ["male", "female"]},
+        "address-uuid": {"type": "string", "format": "uuid"},
+        "birthdate": {"type": "string", "format": "date"},
+        "birthyear": {"type": "integer"},
+        "birthplace": {"type": "string"},
+        "privacy-state": {"type": "string"}
+    },
+    "required": [
+        "uuid",
+        "firstname",
+        "lastname"
+    ]
+}

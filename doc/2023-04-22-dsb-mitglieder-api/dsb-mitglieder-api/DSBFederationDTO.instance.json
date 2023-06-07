@@ -1,0 +1,8 @@
+{
+    "$schema": "DSBFederationDTO.schema.json",
+    "uuid": "d3a11424-d2bd-11ed-afa1-0242ac120002",
+	"federation-nr": 13,
+	"name": "Schachverband Württemberg",
+	"nickname": "SVW",
+	"region-uuid": "e29c2c2a-d2bd-11ed-afa1-0242ac120002"
+}

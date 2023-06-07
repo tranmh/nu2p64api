@@ -1,0 +1,17 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema#",
+    "type": "object",
+    "properties": {
+        "uuid": {"type": "string", "format": "uuid"},
+        "name": {"type": "string"},
+        "nickname": {"type": "string"},
+        "pattern": {"type": "string"},
+        "parent-region-uuid": {"type": "string", "format": "uuid"}
+    },
+    "required": [
+        "uuid",
+        "name",
+        "nickname",
+        "pattern"
+    ]
+}

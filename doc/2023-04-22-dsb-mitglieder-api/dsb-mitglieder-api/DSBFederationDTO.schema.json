@@ -1,0 +1,18 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema#",
+    "type": "object",
+    "properties": {
+        "uuid": {"type": "string", "format": "uuid"},
+        "federation-nr": {"type": "integer"},
+        "name": {"type": "string"},
+        "nickname": {"type": "string"},
+        "region-uuid": {"type": "string", "format": "uuid"}
+    },
+    "required": [
+        "uuid",
+        "federation-nr",
+        "name",
+        "nickname",
+        "region-uuid"
+    ]
+}

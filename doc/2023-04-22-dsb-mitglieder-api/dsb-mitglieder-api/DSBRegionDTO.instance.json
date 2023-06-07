@@ -1,0 +1,8 @@
+{
+    "$schema": "DSBRegionDTO.schema.json",
+    "uuid": "e29c2c2a-d2bd-11ed-afa1-0242ac120002",
+    "name": "Württemberg",
+    "nickname": "Württemberg",
+    "pattern": "DE.SW.13",
+    "parent-region-uuid": "e29c2c2-d2bd-11ed-afa1-0242ac120003"
+}
