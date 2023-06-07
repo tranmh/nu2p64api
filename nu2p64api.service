@@ -1,0 +1,12 @@
+[Unit]
+Description=NuData2Portal64 REST-API
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/nu2p64api/main.sh
+
+[Install]
+WantedBy=multi-user.target
+
+
