@@ -128,7 +128,7 @@ func isValidUUID(u string) bool {
 
 // select
 func getDTOPerson(c *gin.Context) {
-	uuidParam := c.Param("uuid")
+	uuidParam := c.Param("pers_uuid")
 
 	var person DTOPerson
 
@@ -156,7 +156,7 @@ func getDTOPerson(c *gin.Context) {
 
 // delete
 func deleteDTOPerson(c *gin.Context) {
-	uuidParam := c.Param("uuid")
+	uuidParam := c.Param("pers_uuid")
 
 	if isValidUUID(uuidParam) {
 		myUuid, _ := uuid.Parse(uuidParam)
@@ -209,6 +209,56 @@ func putDTOPerson(c *gin.Context) {
 	}
 }
 
+func getDTORegion(c *gin.Context) {
+	// reg_uuid := c.Param("reg_uuid")
+	var region DTORegion
+	c.JSON(200, region)
+}
+
+func getDTOFederation(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	var federation DTOFederation
+	c.JSON(200, federation)
+}
+
+func getDTOClub(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	// club_uuid := c.Param("club_uuid")
+	var club DTOClub
+	c.JSON(200, club)
+}
+
+func getDTOAddress(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	// club_uuid := c.Param("club_uuid")
+	var address DTOAddress
+	c.JSON(200, address)
+}
+
+func getDTOClubMember(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	// club_uuid := c.Param("club_uuid")
+	// clubmem_uuid := c.Param("clubmem_uuid")
+	var address DTOAddress
+	c.JSON(200, address)
+}
+
+/*
+func getDTOClubRole(c *gin.Context) {
+	// role_uuid := c.Param("role_uuid")
+	var clubrole DTOClubRole
+	c.JSON(200, clubrole)
+}
+*/
+
+func getDTOClubOfficial(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	// club_uuid := c.Param("club_uuid")
+	// clubmem_uuid := c.Param("clubmem_uuid")
+	var clubofficial DTOClubOfficial
+	c.JSON(200, clubofficial)
+}
+
 func main() {
 
 	flag.StringVar(&yourMySQLdatabasepassword, "yourMySQLdatabasepassword", "NOT_SET", "your MySQL database password")
@@ -228,9 +278,23 @@ func main() {
 		"anybody": "s3cr3t",
 	}))
 
-	authorized.GET("/person/:uuid", getDTOPerson)
-	authorized.PUT("/person/", putDTOPerson)
-	authorized.DELETE("/person/:uuid", deleteDTOPerson)
+	authorized.GET("/regions/:reg_uuid", getDTORegion)
+
+	authorized.GET("/federations/:fed_uuid", getDTOFederation)
+
+	authorized.GET("/federations/:fed_uuid/clubs/:club_uuid", getDTOClub)
+
+	authorized.GET("/federations/:fed_uuid/addresses/:addr_uuid", getDTOAddress)
+
+	authorized.GET("/federations/:fed_uuid/persons/:pers_uuid", getDTOPerson)
+	authorized.PUT("/federations/:fed_uuid/persons/:pers_uuid", putDTOPerson)
+	authorized.DELETE("/federations/:fed_uuid/persons/:pers_uuid", deleteDTOPerson)
+
+	authorized.GET("/federations/:fed_uuid/club/:club_uuid/member/:clubmem_uuid", getDTOClubMember)
+
+	// authorized.GET("/clubRoles/:role_uuid", getDTOClubRole)
+
+	authorized.GET("/federations/:fed_uuid/club/:club_uuid/officials/:role_uuid", getDTOClubOfficial)
 
 	router.Run(":3030")
 }
