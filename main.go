@@ -10,11 +10,18 @@ import (
 	"github.com/google/uuid"
 )
 
-var db sql.DB
-
 var (
+	db                        *sql.DB
 	yourMySQLdatabasepassword string
 )
+
+func init() {
+	var err error
+	db, err = sql.Open("mysql", "portal:Usm@1?/#Qv^avF@tcp(127.0.0.1:3306)/mvdsb")
+	if err != nil {
+		panic(err.Error())
+	}
+}
 
 type Gender int
 
@@ -128,6 +135,7 @@ func isValidUUID(u string) bool {
 
 // select
 func getDTOPerson(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
 	uuidParam := c.Param("pers_uuid")
 
 	var person DTOPerson
@@ -136,12 +144,10 @@ func getDTOPerson(c *gin.Context) {
 		myUuid, _ := uuid.Parse(uuidParam)
 		person.UUID = myUuid
 
-		err := db.QueryRow("SELECT vorname, name, geschlecht, geburtsdatum, geburtsort FROM `person` where uuid = ?", myUuid).
+		err := db.QueryRow("SELECT vorname, name FROM `person` where uuid = ?", myUuid).
 			Scan(
 				&person.FirstName,
 				&person.LastName,
-				&person.Gender,
-				&person.BirthYear,
 			)
 
 		if err != nil {
@@ -265,12 +271,7 @@ func main() {
 
 	flag.Parse()
 
-	var dataSourceName = "portal:" + yourMySQLdatabasepassword + "@tcp(127.0.0.1:3306)/mvdsb"
-	db, err := sql.Open("mysql", dataSourceName)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer db.Close()
+	// var dataSourceName = "portal:" + yourMySQLdatabasepassword + "@tcp(127.0.0.1:3306)/mvdsb"  // FIXME, not in use
 
 	router := gin.Default()
 
