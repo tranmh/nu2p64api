@@ -1,0 +1,40 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema#",
+    "title": "DSBClubDTO",
+    "description": "Vereinsdaten, die an ALLE endpoints geliefert werden",
+    "type": "object",
+    "examples": [
+        {
+            "$schema": "DSBClubDTO_.schema.json",
+            "uuid": "d3a11424-d2bd-11ed-afa1-0242ac120003",
+            "federation-uuid": "d3a11424-d2bd-11ed-afa1-0242ac120002",
+            "region-uuid": "e29c2c2a-d2bd-11ed-afa1-0242ac120004",
+            "club-nr": "172203",
+            "name": "Schachclub Böblingen 1975 e.V."
+        }
+    ],
+    "$comment": "public properties",
+    "properties": {
+        "uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "federation-uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "region-uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "club-nr": {"type": "string"},
+        "name": {"type": "string"}
+    },
+    "required": [
+        "uuid",
+        "federation-uuid",
+        "region-uuid",
+        "club-nr",
+        "name"
+    ]
+}

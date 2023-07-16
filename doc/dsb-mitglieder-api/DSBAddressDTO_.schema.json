@@ -1,6 +1,9 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema#",
+    "title": "DSBAddressDTO_",
+    "description": "Adressdaten, die an REGIONAL AUTORISIERTE endpoints geliefert werden.",
     "type": "object",
+    "$comment": "protected properties",
     "properties": {
         "uuid": {
             "type": "string",
@@ -26,7 +29,9 @@
         },
         "phone-mobile": {"type": "string"},
         "phone-home": {"type": "string"},
-        "phone-work": {"type": "string"}
+        "phone-work": {"type": "string"},
+        "longitude": {"type": "number"},
+        "latitude": {"type": "number"}
     },
     "required": [
         "uuid"

@@ -1,20 +1,22 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema#",
+    "title": "DSBClubOfficialDTO_",
+    "description": "Vereinsfunktionärsdaten, die an REGIONAL AUTORISIERTE endpoints geliefert werden.",
     "type": "object",
+    "$comment": "protected properties",
     "properties": {
         "uuid": {"type": "string", "format": "uuid"},
         "club-uuid": {"type": "string", "format": "uuid"},
         "member-uuid": {"type": "string", "format": "uuid"},
         "person-uuid": {"type": "string", "format": "uuid"},
-        "club-role-uuid": {"type": "string", "format": "uuid"},
+        "role-name": {"type": "string"},
         "valid-from": {"type": "string", "format": "date"},
         "valid-until": {"type": "string", "format": "date"}
     },
     "required": [
         "uuid",
         "club-uuid",
-        "person-uuid",
         "member-uuid",
-        "club-role-uuid"
+        "person-uuid"
     ]
 }

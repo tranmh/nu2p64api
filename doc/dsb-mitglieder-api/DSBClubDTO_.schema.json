@@ -1,0 +1,68 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema#",
+    "title": "DSBClubDTO_",
+    "description": "Adressdaten, die an REGIONAL AUTORISIERTE endpoints geliefert werden.",
+    "type": "object",
+    "examples": [
+        {
+            "$schema": "DSBClubDTO.schema.json",
+            "uuid": "d3a11424-d2bd-11ed-afa1-0242ac120003",
+            "federation-uuid": "d3a11424-d2bd-11ed-afa1-0242ac120002",
+            "region-uuid": "e29c2c2a-d2bd-11ed-afa1-0242ac120004",
+            "club-nr": "172203",
+            "name": "Schachclub Böblingen 1975 e.V.",
+            "entry-date": "1975-06-30",
+            "contact-adress-uuid": "a3a11424-d2bd-11ed-afa1-0242ac120001",
+            "sport-address-uuids": ["a3a11424-d2bd-11ed-afa1-0242ac120002", "a3a11424-d2bd-11ed-afa1-0242ac120003"],
+            "register-of-associations-nr": "VR 330111",
+            "club-type": "SINGLEDEVISION",
+            "bank-account-owner": "Schachclub Böblingen",
+            "bank-account-bank": "DEUTSCHE KREDITBANK BERLIN",
+            "bank-account-bic": "BYLADEM1001",
+            "bank-account-iban": "DE02120300000000202051",
+            "direct-debit": true
+        }
+    ],
+    "allOf": [ {"$ref": "DSBClubDTO.schema.json"} ],
+    "$comment": "protected properties",
+    "properties": {
+        "nickname": {"type": "string"},
+        "entry-date": {
+            "type": "string",
+            "format": "date"
+        },
+        "archived-date": {
+            "type": "string",
+            "format": "date"
+        },
+        "contact-adress-uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "invoice-adress-uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "sport-address-uuids": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "format": "uuid"
+            }
+        },
+        "club-type": {
+            "enum": ["SINGLEDEVISION", "MULTIDIVISION"]
+        },
+        "register-of-associations-nr": {
+            "type": "string"
+        },
+        "bank-account-owner": {"type": "string"},
+        "bank-account-bank": {"type": "string"},
+        "bank-account-bic": {"type": "string"},
+        "bank-account-iban": {"type": "string"},
+        "direct-debit": {"type": "boolean"}
+    },
+    "required": [
+        "contact-adress-uuid"
+    ]
+}

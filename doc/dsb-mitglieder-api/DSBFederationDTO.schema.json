@@ -1,17 +1,21 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema#",
     "type": "object",
+    "title": "DSBFederationDTO",
+    "description": "Verbandsdaten, die an alle endpoints geliefert werden",
+    "$comment": "public properties",
     "properties": {
         "uuid": {"type": "string", "format": "uuid"},
+        "federation-nr": {"type": "integer"},
         "name": {"type": "string"},
         "nickname": {"type": "string"},
-        "pattern": {"type": "string"},
-        "parent-region-uuid": {"type": "string", "format": "uuid"}
+        "region-uuid": {"type": "string", "format": "uuid"}
     },
     "required": [
         "uuid",
+        "federation-nr",
         "name",
         "nickname",
-        "pattern"
+        "region-uuid"
     ]
 }

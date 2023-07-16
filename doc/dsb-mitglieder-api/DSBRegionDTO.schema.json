@@ -1,18 +1,20 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema#",
+    "title": "DSBRegionDTO",
+    "description": "Regionsdaten, die an ALLE endpoints geliefert werden",
     "type": "object",
+    "$comment": "public properties",
     "properties": {
         "uuid": {"type": "string", "format": "uuid"},
-        "federation-nr": {"type": "integer"},
         "name": {"type": "string"},
         "nickname": {"type": "string"},
-        "region-uuid": {"type": "string", "format": "uuid"}
+        "pattern": {"type": "string"},
+        "parent-region-uuid": {"type": "string", "format": "uuid"}
     },
     "required": [
         "uuid",
-        "federation-nr",
         "name",
         "nickname",
-        "region-uuid"
+        "pattern"
     ]
 }
