@@ -34,86 +34,91 @@ func (s Gender) String() string {
 }
 
 type DTOAddress struct {
-	uuid         uuid.UUID
-	name         string
-	name2        string
-	street       string
-	zip          string
-	city         string
-	email        string // mail.ParseAddress() to validate
-	email2       string // dito
-	www          string // url.ParseRequestURI to validate
-	phone_mobile string // github.com/dongri/phonenumber with phonenumber.Parse to validate
-	phone_home   string // dito
-	phone_work   string // dito
+	UUID         uuid.UUID `json:"uuid"`
+	Name         string    `json:"name"`
+	Name2        string    `json:"name2"`
+	Street       string    `json:"street"`
+	ZIP          string    `json:"zip"`
+	City         string    `json:"city"`
+	Country      string    `json:"country"`
+	Email        string    `json:"email"`        // mail.ParseAddress() to validate
+	Email2       string    `json:"email2"`       // dito
+	WWW          string    `json:"www"`          // url.ParseRequestURI to validate
+	Phone_Mobile string    `json:"phone-mobile"` // github.com/dongri/phonenumber with phonenumber.Parse to validate
+	Phone_Home   string    `json:"phone-home"`   // dito
+	Phone_Work   string    `json:"phone-work"`   // dito
+	Longitude    int       `json:"longitude"`
+	Latitude     int       `json:"latitude"`
 }
 
 type DTOClub struct {
-	uuid                 uuid.UUID
-	federation_uuid      uuid.UUID
-	region_uuid          uuid.UUID
-	club_nr              string
-	name                 string
-	entry_date           time.Time
-	archived_date        time.Time
-	contact_address_uuid uuid.UUID
-	invoice_address_uuid uuid.UUID
-	sport_address_uuids  []uuid.UUID
+	UUID            uuid.UUID `json:"uuid"`
+	Federation_UUID uuid.UUID `json:"federation-uuid"`
+	Region_UUID     uuid.UUID `json:"region-uuid"`
+	Club_NR         string    `json:"club-nr"`
+	Name            string    `json:"name"`
+	/*
+		Entry_Date           time.Time   `json:"uuid"`
+		Archived_Date        time.Time   `json:"uuid"`
+		Contact_Address_UUID uuid.UUID   `json:"uuid"`
+		Invoice_Address_UUID uuid.UUID   `json:"uuid"`
+		Sport_Address_UUIDs  []uuid.UUID `json:"uuid"`
+	*/
 }
 
 type DTOClubMember struct {
-	uuid                uuid.UUID
-	club_uuid           uuid.UUID
-	person_uuid         uuid.UUID
-	member_from         time.Time
-	member_until        time.Time
-	license_state       string
-	license_valid_from  time.Time
-	license_valid_until time.Time
+	UUID                uuid.UUID `json:"uuid"`
+	Club_UUID           uuid.UUID `json:"club-uuid"`
+	Person_UUID         uuid.UUID `json:"person-uuid"`
+	Member_From         time.Time `json:"member-from"`
+	Member_Until        time.Time `json:"member-until"`
+	License_State       string    `json:"licence-state"` // ACTIVE, PASSIVE, NO_LICENSE
+	License_Valid_From  time.Time `json:"license-valid-from"`
+	License_Valid_Until time.Time `json:"license-valid-until"`
+	Member_Nr           int       `json:"member-nr"`
 }
 
 type DTOClubOfficial struct {
-	uuid           uuid.UUID
-	club_uuid      uuid.UUID
-	member_uuid    uuid.UUID
-	person_uuid    uuid.UUID
-	club_role_uuid uuid.UUID
-	valid_from     time.Time
-	valid_until    time.Time
-}
-
-type DTOClubRole struct {
-	uuid     uuid.UUID
-	name     string
-	nickname string
+	UUID        uuid.UUID `json:"uuid"`
+	Club_UUID   uuid.UUID `json:"club-uuid"`
+	Member_UUID uuid.UUID `json:"member-uuid"`
+	Person_UUID uuid.UUID `json:"person-uuid"`
+	Role_Name   string    `json:"role-name"`
+	Valid_From  time.Time `json:"valid-from"`
+	Valid_Until time.Time `json:"valid-until"`
 }
 
 type DTOFederation struct {
-	uuid          uuid.UUID
-	federation_nr int
-	name          string
-	nickname      string
-	region_uuid   uuid.UUID
+	UUID         uuid.UUID `json:"uuid"`
+	Fedration_NR int       `json:"fedreation-nr"`
+	Name         string    `json:"name"`
+	NickName     string    `json:"nickname"`
+	Region_UUID  uuid.UUID `json:"region-uuid"`
 }
 
 type DTOPerson struct {
-	uuid          uuid.UUID
-	firstname     string
-	lastname      string
-	gender        Gender
-	address_uuid  string
-	birthdate     time.Time
-	birthyear     int
-	birthplace    string
-	privacy_state string
+	UUID      uuid.UUID `json:"uuid"`
+	FirstName string    `json:"firstname"`
+	LastName  string    `json:"lastname"`
+	Title     string    `json:"title"`
+	Gender    Gender    `json:"gender"`
+	BirthYear int       `json:"birthyear"`
+	// AddressUUID  string    `json:"gen"`
+	// BirthDate    time.Time `json:"region-uuid"`
+	// BirthPlace   string `json:"region-uuid"`
+	Nation        string `json:"nation"`
+	Privacy_State string `json:"privacy-state"`
+	FIDE_Title    string `json:"fide-title"`
+	FIDE_Nation   string `json:"fide-nation"`
+	FIDE_Id       string `json:"fide-id"`
 }
 
 type DTORegion struct {
-	uuid               uuid.UUID
-	name               string
-	nickname           string
-	pattern            string
-	parent_region_uuid uuid.UUID
+	UUID               uuid.UUID `json:"uuid"`
+	Name               string    `json:"name"`
+	NickName           string    `json:"nickname"`
+	Pattern            string    `json:"pattern"`
+	Parent_Region_UUID uuid.UUID `json:"parent-region-uuid"`
 }
 
 func isValidUUID(u string) bool {
@@ -129,15 +134,14 @@ func getDTOPerson(c *gin.Context) {
 
 	if isValidUUID(uuidParam) {
 		myUuid, _ := uuid.Parse(uuidParam)
-		person.uuid = myUuid
+		person.UUID = myUuid
 
 		err := db.QueryRow("SELECT vorname, name, geschlecht, geburtsdatum, geburtsort FROM `person` where uuid = ?", myUuid).
 			Scan(
-				&person.firstname,
-				&person.lastname,
-				&person.gender,
-				&person.birthdate,
-				&person.birthplace,
+				&person.FirstName,
+				&person.LastName,
+				&person.Gender,
+				&person.BirthYear,
 			)
 
 		if err != nil {
@@ -181,8 +185,8 @@ func putDTOPerson(c *gin.Context) {
 	var person DTOPerson
 	c.BindJSON(&person)
 
-	if isValidUUID(person.uuid.String()) {
-		myUuid, _ := uuid.Parse(person.uuid.String())
+	if isValidUUID(person.UUID.String()) {
+		myUuid, _ := uuid.Parse(person.UUID.String())
 
 		result, err := db.Exec("select * from person where uuid = ?", myUuid)
 
