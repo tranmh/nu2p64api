@@ -15,14 +15,6 @@ var (
 	yourMySQLdatabasepassword string
 )
 
-func init() {
-	var err error
-	db, err = sql.Open("mysql", "portal:Usm@1?/#Qv^avF@tcp(127.0.0.1:3306)/mvdsb")
-	if err != nil {
-		panic(err.Error())
-	}
-}
-
 type Gender int
 
 const (
@@ -215,25 +207,68 @@ func putDTOPerson(c *gin.Context) {
 	}
 }
 
+// Not implemented, since there is no region in portal64 according to Holger.
 func getDTORegion(c *gin.Context) {
 	// reg_uuid := c.Param("reg_uuid")
 	var region DTORegion
 	c.JSON(200, region)
 }
 
+// table organisation for verein und verband
 func getDTOFederation(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
+	fed_uuid := c.Param("fed_uuid")
 	var federation DTOFederation
-	c.JSON(200, federation)
+
+	if isValidUUID(fed_uuid) {
+		myUuid, _ := uuid.Parse(fed_uuid)
+		federation.UUID = myUuid
+
+		err := db.QueryRow("SELECT name, id FROM `organisation` where uuid = ?", myUuid).
+			Scan(
+				&federation.Name,
+				&federation.Fedration_NR, // FIXME: actually you want to get vkz, but vkz is a string, not an int
+				// FIXME: not match of NickName and Region_UUID?
+			)
+
+		if err != nil {
+			c.JSON(500, err.Error())
+		} else {
+			c.JSON(200, federation)
+		}
+	} else {
+		c.JSON(400, fed_uuid)
+	}
 }
 
+// table organisation as well
 func getDTOClub(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
-	// club_uuid := c.Param("club_uuid")
+	club_uuid := c.Param("club_uuid")
 	var club DTOClub
-	c.JSON(200, club)
+
+	if isValidUUID(club_uuid) {
+		myUuid, _ := uuid.Parse(club_uuid)
+		club.UUID = myUuid
+
+		err := db.QueryRow("SELECT name from `organisation` where uuid = ?", myUuid).
+			Scan(
+				&club.Name,
+				// FIXME: federation-uuid
+				// region-uuid is not in use in portal64
+				// club-nr should be C0327 ?
+			)
+
+		if err != nil {
+			c.JSON(500, err.Error())
+		} else {
+			c.JSON(200, club)
+		}
+	} else {
+		c.JSON(400, club_uuid)
+	}
 }
 
+// table adresse, adressen and adr
 func getDTOAddress(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
 	// club_uuid := c.Param("club_uuid")
@@ -241,6 +276,7 @@ func getDTOAddress(c *gin.Context) {
 	c.JSON(200, address)
 }
 
+// table person and table mitgliedschaft
 func getDTOClubMember(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
 	// club_uuid := c.Param("club_uuid")
@@ -257,6 +293,7 @@ func getDTOClubRole(c *gin.Context) {
 }
 */
 
+// table funktion
 func getDTOClubOfficial(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
 	// club_uuid := c.Param("club_uuid")
@@ -271,7 +308,13 @@ func main() {
 
 	flag.Parse()
 
-	// var dataSourceName = "portal:" + yourMySQLdatabasepassword + "@tcp(127.0.0.1:3306)/mvdsb"  // FIXME, not in use
+	var dataSourceName = "portal:" + yourMySQLdatabasepassword + "@tcp(127.0.0.1:3306)/mvdsb"
+	var err error
+	db, err = sql.Open("mysql", dataSourceName)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer db.Close()
 
 	router := gin.Default()
 
