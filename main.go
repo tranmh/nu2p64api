@@ -105,8 +105,9 @@ type DTOClubOfficial struct {
 }
 
 type DTOFederation struct {
-	UUID         uuid.UUID `json:"uuid"`
-	Fedration_NR int       `json:"fedreation-nr"`
+	UUID uuid.UUID `json:"uuid"`
+	// Fedration_NR int       `json:"fedreation-nr"` // TODO, it is better to you string instead of int here, since we are using vkz C00 for Schachverband Württemberg
+	Fedration_NR string    `json:"fedreation-nr"`
 	Name         string    `json:"name"`
 	NickName     string    `json:"nickname"`
 	Region_UUID  uuid.UUID `json:"region-uuid"`
@@ -188,7 +189,7 @@ func getDTOPerson(c *gin.Context) {
 		} else if strings.Compare(person.Gender, "1") == 0 {
 			person.Gender = "male"
 		} else {
-			c.JSON(500, errors.New("neither female=0 nor male=1 - broken data with gender aka person.geschlecht column?"))
+			c.JSON(500, errors.New("neither female=0 nor male=1 - broken data with gender aka person.geschlecht column? gender:"+person.Gender))
 		}
 
 		const layoutISO = "2006-01-02"
@@ -352,7 +353,7 @@ func putDTOPerson(c *gin.Context) {
 					c.JSON(200, person)
 				}
 			} else {
-				c.JSON(500, "panic")
+				c.JSON(500, "panic, more than 1 federation with same uuid: "+myUuid.String())
 			}
 		}
 	} else {
@@ -369,10 +370,10 @@ func getDTOFederation(c *gin.Context) {
 		myUuid, _ := uuid.Parse(fed_uuid)
 		federation.UUID = myUuid
 
-		err := db.QueryRow("SELECT name, id FROM `organisation` where uuid = ?", myUuid).
+		err := db.QueryRow("SELECT name, vkz FROM `organisation` where uuid = ?", myUuid).
 			Scan(
 				&federation.Name,
-				&federation.Fedration_NR, // FIXME: actually you want to get vkz, but vkz is a string, not an int
+				&federation.Fedration_NR,
 				// FIXME: not match of NickName and Region_UUID?
 			)
 
@@ -387,9 +388,85 @@ func getDTOFederation(c *gin.Context) {
 }
 
 func putDTOFederation(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
+	fed_uuid := c.Param("fed_uuid")
+
 	var federation DTOFederation
-	c.JSON(501, federation)
+	err := c.BindJSON(&federation)
+	if err != nil {
+		c.JSON(400, err)
+		return
+	}
+
+	if strings.Compare(fed_uuid, federation.UUID.String()) != 0 {
+		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fits: "+fed_uuid+" vs "+federation.UUID.String()))
+		return
+	}
+
+	if isValidUUID(federation.UUID.String()) {
+		myUuid, parseErr := uuid.Parse(federation.UUID.String())
+
+		if parseErr != nil {
+			c.JSON(400, parseErr)
+			return
+		}
+
+		if !isValidUUID(myUuid.String()) {
+			c.JSON(400, errors.New("myUuid is not a valid UUID: "+myUuid.String()))
+			return
+		}
+
+		var count string
+		var sqlSelectQuery string = `select count(*) from organisation where uuid = "` + myUuid.String() + `"`
+		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
+		fmt.Printf(sqlSelectQuery)
+
+		if errDBExec != nil {
+			c.JSON(500, err.Error())
+		} else {
+
+			if strings.Compare(count, "0") == 0 { // insert
+
+				var sqlInsertQuery string = `
+					INSERT INTO organisation (
+						uuid,
+						name, 
+						vkz)
+					VALUES ("` + federation.UUID.String() +
+					`", "` + federation.Name +
+					`", "` + federation.Fedration_NR + `)
+				`
+				println(sqlInsertQuery)
+
+				_, err3 := db.Exec(sqlInsertQuery)
+
+				if err3 != nil {
+					c.JSON(400, err3.Error())
+				} else {
+					c.JSON(200, federation)
+				}
+			} else if strings.Compare(count, "1") == 0 { // update
+
+				var sqlUpdateQuery string = `
+					UPDATE organisation set 
+						name = "` + federation.Name + `",
+						vkz = "` + federation.Fedration_NR + `"
+					WHERE uuid = "` + federation.UUID.String() + `"
+				`
+				println(sqlUpdateQuery)
+
+				_, err4 := db.Exec(sqlUpdateQuery)
+				if err4 != nil {
+					c.JSON(400, err4.Error())
+				} else {
+					c.JSON(200, federation)
+				}
+			} else {
+				c.JSON(500, errors.New("panic, more than 1 federation with same uuid: "+myUuid.String()))
+			}
+		}
+	} else {
+		c.JSON(400, errors.New("uuid is not valid"+federation.UUID.String()))
+	}
 }
 
 // table organisation as well
@@ -402,19 +479,31 @@ func getDTOClub(c *gin.Context) {
 		myUuid, _ := uuid.Parse(club_uuid)
 		club.UUID = myUuid
 
-		err := db.QueryRow("SELECT name from `organisation` where uuid = ?", myUuid).
+		err := db.QueryRow("SELECT name, vkz from `organisation` where uuid = ?", myUuid).
 			Scan(
 				&club.Name,
-				// FIXME: federation-uuid
-				// region-uuid is not in use in portal64
-				// club-nr should be C0327 ?
+				&club.Club_NR,
+				// TODO: region-uuid is not in use in portal64, but we use verband, unterverband, bezirk, verein.
 			)
 
 		if err != nil {
 			c.JSON(500, err.Error())
-		} else {
-			c.JSON(200, club)
+			return
 		}
+
+		var vkzVerband string = string(club.Club_NR[0]) + "00"
+
+		err2 := db.QueryRow("SELECT uuid from `organisation` where vkz = ?", vkzVerband).
+			Scan(
+				&club.Federation_UUID,
+			)
+		if err2 != nil {
+			c.JSON(500, err2.Error())
+			return
+		}
+
+		c.JSON(200, club)
+
 	} else {
 		c.JSON(400, club_uuid)
 	}
@@ -422,9 +511,84 @@ func getDTOClub(c *gin.Context) {
 
 func putDTOClub(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
-	// club_uuid := c.Param("club_uuid")
+	club_uuid := c.Param("club_uuid")
 	var club DTOClub
-	c.JSON(501, club)
+	err := c.BindJSON(&club)
+	if err != nil {
+		c.JSON(400, err)
+		return
+	}
+
+	if strings.Compare(club_uuid, club.UUID.String()) != 0 {
+		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fits: "+club_uuid+" vs "+club.UUID.String()))
+		return
+	}
+
+	if isValidUUID(club.UUID.String()) {
+		myUuid, parseErr := uuid.Parse(club.UUID.String())
+
+		if parseErr != nil {
+			c.JSON(400, parseErr)
+			return
+		}
+
+		if !isValidUUID(myUuid.String()) {
+			c.JSON(400, errors.New("myUuid is not a valid UUID: "+myUuid.String()))
+			return
+		}
+
+		var count string
+		var sqlSelectQuery string = `select count(*) from organisation where uuid = "` + myUuid.String() + `"`
+		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
+		fmt.Printf(sqlSelectQuery)
+
+		if errDBExec != nil {
+			c.JSON(500, err.Error())
+		} else {
+
+			if strings.Compare(count, "0") == 0 { // insert
+
+				var sqlInsertQuery string = `
+					INSERT INTO organisation (
+						uuid,
+						name, 
+						vkz)
+					VALUES ("` + club.UUID.String() +
+					`", "` + club.Name +
+					`", "` + club.Club_NR + `)
+				`
+				println(sqlInsertQuery)
+
+				_, err3 := db.Exec(sqlInsertQuery)
+
+				if err3 != nil {
+					c.JSON(400, err3.Error())
+				} else {
+					c.JSON(200, club)
+				}
+			} else if strings.Compare(count, "1") == 0 { // update
+
+				var sqlUpdateQuery string = `
+					UPDATE organisation set 
+						name = "` + club.Name + `",
+						vkz = "` + club.Club_NR + `"
+					WHERE uuid = "` + club.UUID.String() + `"
+				`
+				println(sqlUpdateQuery)
+
+				_, err4 := db.Exec(sqlUpdateQuery)
+				if err4 != nil {
+					c.JSON(400, err4.Error())
+				} else {
+					c.JSON(200, club)
+				}
+			} else {
+				c.JSON(500, errors.New("panic, more than 1 club with same uuid: "+myUuid.String()))
+			}
+		}
+	} else {
+		c.JSON(400, errors.New("uuid is not valid"+club.UUID.String()))
+	}
 }
 
 func deleteDTOClub(c *gin.Context) {
