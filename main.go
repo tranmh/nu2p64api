@@ -2,7 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"flag"
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,23 +17,36 @@ import (
 var (
 	db                        *sql.DB
 	yourMySQLdatabasepassword string
+	basicAuthUsername         string
+	basicAuthPassword         string
 )
 
 type Gender int
 
 const (
-	Male Gender = iota
-	Female
+	Female Gender = iota
+	Male
+	Unknown
 )
 
 func (s Gender) String() string {
 	switch s {
 	case Male:
-		return "Male"
+		return "male"
 	case Female:
-		return "Female"
+		return "female"
 	}
 	return "unknown"
+}
+
+func getGender(gender string) Gender {
+	if strings.Compare(gender, "female") == 0 {
+		return Female
+	} else if strings.Compare(gender, "male") == 0 {
+		return Male
+	} else {
+		return Unknown
+	}
 }
 
 type DTOAddress struct {
@@ -100,8 +117,9 @@ type DTOPerson struct {
 	FirstName string    `json:"firstname"`
 	LastName  string    `json:"lastname"`
 	Title     string    `json:"title"`
-	Gender    Gender    `json:"gender"`
-	BirthYear int       `json:"birthyear"`
+	// Gender    Gender    `json:"gender"`
+	Gender    string `json:"gender"`
+	BirthYear int    `json:"birthyear"`
 	// AddressUUID  string    `json:"gen"`
 	// BirthDate    time.Time `json:"region-uuid"`
 	// BirthPlace   string `json:"region-uuid"`
@@ -131,16 +149,55 @@ func getDTOPerson(c *gin.Context) {
 	uuidParam := c.Param("pers_uuid")
 
 	var person DTOPerson
+	var tmpBirthDay string
 
 	if isValidUUID(uuidParam) {
 		myUuid, _ := uuid.Parse(uuidParam)
 		person.UUID = myUuid
 
-		err := db.QueryRow("SELECT vorname, name FROM `person` where uuid = ?", myUuid).
+		sqlSelectQuery := `
+		select ifnull(person.name, ''), 
+				ifnull(person.vorname, ''), 
+				ifnull(titel.bezeichnung, ''), 
+				ifnull(person.geschlecht, ''), 
+				ifnull(person.geburtsdatum, ''), 
+				ifnull(person.nation, ''), 
+				ifnull(person.datenschutz, ''), 
+				ifnull(person.nationfide, ''), 
+				ifnull(person.idfide, '') 
+		from person, titel 
+		where person.titel=titel.id 
+			and uuid = ?`
+
+		err := db.QueryRow(sqlSelectQuery, myUuid).
 			Scan(
 				&person.FirstName,
 				&person.LastName,
+				&person.Title,
+				&person.Gender,
+				&tmpBirthDay,
+				&person.Nation,
+				&person.Privacy_State, // TODO: NULL, 0 or 1, 1 means accepted?
+				// TODO we do not have FIDE_Title
+				&person.FIDE_Nation,
+				&person.FIDE_Id,
 			)
+
+		if strings.Compare(person.Gender, "0") == 0 {
+			person.Gender = "female"
+		} else if strings.Compare(person.Gender, "1") == 0 {
+			person.Gender = "male"
+		} else {
+			c.JSON(500, errors.New("neither female=0 nor male=1 - broken data with gender aka person.geschlecht column?"))
+		}
+
+		const layoutISO = "2006-01-02"
+		t, parseBDError := time.Parse(layoutISO, tmpBirthDay)
+		if parseBDError != nil {
+			c.JSON(500, parseBDError.Error())
+		} else {
+			person.BirthYear = t.Year()
+		}
 
 		if err != nil {
 			c.JSON(500, err.Error())
@@ -152,14 +209,11 @@ func getDTOPerson(c *gin.Context) {
 	}
 }
 
-// delete
-func deleteDTOPerson(c *gin.Context) {
-	uuidParam := c.Param("pers_uuid")
-
+func deleteDTOGeneric(c *gin.Context, uuidParam string, deleteSQLStr string) {
 	if isValidUUID(uuidParam) {
 		myUuid, _ := uuid.Parse(uuidParam)
 
-		result, err := db.Exec("delete from person where uuid = ?", myUuid)
+		result, err := db.Exec(deleteSQLStr, myUuid)
 
 		if err != nil {
 			c.JSON(500, err.Error())
@@ -178,40 +232,132 @@ func deleteDTOPerson(c *gin.Context) {
 	}
 }
 
+// delete
+func deleteDTOPerson(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	uuidParam := c.Param("pers_uuid")
+	deleteSQLStr := "delete from person where uuid = ?"
+	deleteDTOGeneric(c, uuidParam, deleteSQLStr)
+}
+
+func convertTitleToTitleID(title string) int {
+	if strings.Compare(title, "") == 0 {
+		return 1
+	} else if strings.Compare(title, "Dr") == 0 {
+		return 2
+	} else if strings.Compare(title, "Prof.") == 0 {
+		return 3
+	} else if strings.Compare(title, "Prof. Dr.") == 0 {
+		return 4
+	} else {
+		return 5
+	}
+}
+
 // upsert
 func putDTOPerson(c *gin.Context) {
 	var person DTOPerson
-	c.BindJSON(&person)
+	err := c.BindJSON(&person)
+	if err != nil {
+		c.JSON(400, err)
+		return
+	}
 
 	if isValidUUID(person.UUID.String()) {
-		myUuid, _ := uuid.Parse(person.UUID.String())
+		myUuid, parseErr := uuid.Parse(person.UUID.String())
 
-		result, err := db.Exec("select * from person where uuid = ?", myUuid)
+		if parseErr != nil {
+			c.JSON(400, parseErr)
+			return
+		}
 
-		if err != nil {
+		if !isValidUUID(myUuid.String()) {
+			c.JSON(400, errors.New("myUuid is not a valid UUID: "+myUuid.String()))
+			return
+		}
+
+		var count string
+		var sqlSelectQuery string = `select count(*) from person where uuid = "` + myUuid.String() + `"`
+		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
+		fmt.Printf(sqlSelectQuery)
+
+		if errDBExec != nil {
 			c.JSON(500, err.Error())
 		} else {
-			rowsAffected, err2 := result.RowsAffected()
-			if err2 != nil {
-				c.JSON(500, err2.Error())
-			} else if rowsAffected == 0 {
-				// TODO: insert
-			} else if rowsAffected == 1 {
-				// TODO: update
+			var title = convertTitleToTitleID(person.Title)
+			var gender = getGender(person.Gender)
+			var birthday = strconv.Itoa(person.BirthYear) + "-01-01"
+			if strings.Compare(person.FIDE_Id, "") == 0 {
+				person.FIDE_Id = "NULL"
+			}
+
+			if strings.Compare(count, "0") == 0 { // insert
+
+				var sqlInsertQuery string = `
+					INSERT INTO person (
+						uuid,
+						name, 
+						vorname, 
+						titel, 
+						geschlecht, 
+						geburtsdatum, 
+						nation, 
+						datenschutz, 
+						nationfide, 
+						idfide)
+					VALUES ("` + person.UUID.String() +
+					`", "` + person.LastName +
+					`", "` + person.FirstName +
+					`", "` + strconv.Itoa(title) +
+					`", ` + strconv.Itoa(int(gender)) +
+					`, "` + birthday +
+					`", "` + person.Nation +
+					`", "` + person.Privacy_State +
+					`", "` + person.FIDE_Nation +
+					`",` + person.FIDE_Id +
+					`)
+				`
+				println(sqlInsertQuery)
+				// TODO: missing columns for table person at insert: pkz, geburtsort, adress, gleichstellung, verstorben, etc. see:
+				// select * from person where uuid = "aabe8313-f269-11ed-927b-005056054f4e";
+
+				_, err3 := db.Exec(sqlInsertQuery)
+
+				if err3 != nil {
+					c.JSON(400, err3.Error())
+				} else {
+					c.JSON(200, person)
+				}
+			} else if strings.Compare(count, "1") == 0 { // update
+
+				var sqlUpdateQuery string = `
+					UPDATE person set 
+						name = "` + person.LastName + `",
+						vorname = "` + person.FirstName + `",
+						titel = "` + strconv.Itoa(title) + `",
+						geschlecht = "` + strconv.Itoa(int(gender)) + `",
+						geburtsdatum = "` + birthday + `",
+						nation = "` + person.Nation + `",
+						datenschutz = "` + person.Privacy_State + `",
+						nationfide = "` + person.FIDE_Nation + `",
+						idfide = ` + person.FIDE_Id + `
+					WHERE uuid = "` + person.UUID.String() + `"
+				`
+				println(sqlUpdateQuery)
+
+				_, err4 := db.Exec(sqlUpdateQuery)
+				if err4 != nil {
+					c.JSON(400, err4.Error())
+				} else {
+					c.JSON(200, person)
+				}
 			} else {
 				c.JSON(500, "panic")
 			}
 		}
 	} else {
-		c.JSON(400, person)
+		c.JSON(400, errors.New("uuid is not valid"+person.UUID.String()))
 	}
-}
-
-// Not implemented, since there is no region in portal64 according to Holger.
-func getDTORegion(c *gin.Context) {
-	// reg_uuid := c.Param("reg_uuid")
-	var region DTORegion
-	c.JSON(200, region)
 }
 
 // table organisation for verein und verband
@@ -238,6 +384,12 @@ func getDTOFederation(c *gin.Context) {
 	} else {
 		c.JSON(400, fed_uuid)
 	}
+}
+
+func putDTOFederation(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	var federation DTOFederation
+	c.JSON(501, federation)
 }
 
 // table organisation as well
@@ -268,12 +420,40 @@ func getDTOClub(c *gin.Context) {
 	}
 }
 
+func putDTOClub(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	// club_uuid := c.Param("club_uuid")
+	var club DTOClub
+	c.JSON(501, club)
+}
+
+func deleteDTOClub(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	club_uuid := c.Param("club_uuid")
+	deleteSQLStr := "delete from organisation where uuid = ?"
+	deleteDTOGeneric(c, club_uuid, deleteSQLStr)
+}
+
 // table adresse, adressen and adr
 func getDTOAddress(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
 	// club_uuid := c.Param("club_uuid")
 	var address DTOAddress
-	c.JSON(200, address)
+	c.JSON(501, address)
+}
+
+func putDTOAddress(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	// club_uuid := c.Param("club_uuid")
+	var address DTOAddress
+	c.JSON(501, address)
+}
+
+func deleteDTOAddress(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	address_uuid := c.Param("addr_uuid")
+	deleteSQLStr := "delete from adressen where uuid = ?" // TODO, ask Holger: what about table adr? What about table adresse?
+	deleteDTOGeneric(c, address_uuid, deleteSQLStr)
 }
 
 // table person and table mitgliedschaft
@@ -281,30 +461,56 @@ func getDTOClubMember(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
 	// club_uuid := c.Param("club_uuid")
 	// clubmem_uuid := c.Param("clubmem_uuid")
-	var address DTOAddress
-	c.JSON(200, address)
+	var clubmember DTOClubMember
+	c.JSON(501, clubmember)
 }
 
-/*
-func getDTOClubRole(c *gin.Context) {
-	// role_uuid := c.Param("role_uuid")
-	var clubrole DTOClubRole
-	c.JSON(200, clubrole)
+func putDTOClubMember(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	// club_uuid := c.Param("club_uuid")
+	// clubmem_uuid := c.Param("clubmem_uuid")
+	var clubmember DTOClubMember
+	c.JSON(501, clubmember)
 }
-*/
+
+func deleteDTOClubMember(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	// club_uuid := c.Param("club_uuid")
+	clubmem_uuid := c.Param("clubmem_uuid")
+	deleteSQLStr := "delete from mitgliedschaft where uuid = ?"
+	deleteDTOGeneric(c, clubmem_uuid, deleteSQLStr)
+}
 
 // table funktion
 func getDTOClubOfficial(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
 	// club_uuid := c.Param("club_uuid")
-	// clubmem_uuid := c.Param("clubmem_uuid")
+	// role_uuid := c.Param("role_uuid")
 	var clubofficial DTOClubOfficial
-	c.JSON(200, clubofficial)
+	c.JSON(501, clubofficial)
+}
+
+func putDTOClubOfficial(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	// club_uuid := c.Param("club_uuid")
+	// role_uuid := c.Param("role_uuid")
+	var clubofficial DTOClubOfficial
+	c.JSON(501, clubofficial)
+}
+
+func deleteDTOClubOfficial(c *gin.Context) {
+	// fed_uuid := c.Param("fed_uuid")
+	// club_uuid := c.Param("club_uuid")
+	role_uuid := c.Param("role_uuid")
+	deleteSQLStr := "delete from funktion where uuid = ?"
+	deleteDTOGeneric(c, role_uuid, deleteSQLStr)
 }
 
 func main() {
 
 	flag.StringVar(&yourMySQLdatabasepassword, "yourMySQLdatabasepassword", "NOT_SET", "your MySQL database password")
+	flag.StringVar(&basicAuthUsername, "basicAuthUsername", "NOT_SET", "your username for http basic authentication accessing the API")
+	flag.StringVar(&basicAuthPassword, "basicAuthPassword", "NOT_SET", "your password for http basic authentication accessing the API")
 
 	flag.Parse()
 
@@ -319,26 +525,38 @@ func main() {
 	router := gin.Default()
 
 	authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
-		"anybody": "s3cr3t",
+		basicAuthUsername: basicAuthPassword,
 	}))
 
-	authorized.GET("/regions/:reg_uuid", getDTORegion)
+	// Not implemented, since there is no region in portal64 according to Holger, no implementation means 404 page not found
+	// authorized.GET("/regions/:reg_uuid", getDTORegion)
+	// authorized.PUT("/regions/:reg_uuid", putDTORegion)
 
 	authorized.GET("/federations/:fed_uuid", getDTOFederation)
+	authorized.PUT("/federations/:fed_uuid", putDTOFederation)
 
 	authorized.GET("/federations/:fed_uuid/clubs/:club_uuid", getDTOClub)
+	authorized.PUT("/federations/:fed_uuid/clubs/:club_uuid", putDTOClub)
+	authorized.DELETE("/federations/:fed_uuid/clubs/:club_uuid", deleteDTOClub)
 
 	authorized.GET("/federations/:fed_uuid/addresses/:addr_uuid", getDTOAddress)
+	authorized.PUT("/federations/:fed_uuid/addresses/:addr_uuid", putDTOAddress)
+	authorized.DELETE("/federations/:fed_uuid/addresses/:addr_uuid", deleteDTOAddress)
 
 	authorized.GET("/federations/:fed_uuid/persons/:pers_uuid", getDTOPerson)
 	authorized.PUT("/federations/:fed_uuid/persons/:pers_uuid", putDTOPerson)
 	authorized.DELETE("/federations/:fed_uuid/persons/:pers_uuid", deleteDTOPerson)
 
 	authorized.GET("/federations/:fed_uuid/club/:club_uuid/member/:clubmem_uuid", getDTOClubMember)
+	authorized.PUT("/federations/:fed_uuid/club/:club_uuid/member/:clubmem_uuid", putDTOClubMember)
+	authorized.DELETE("/federations/:fed_uuid/club/:club_uuid/member/:clubmem_uuid", deleteDTOClubMember)
 
+	// Not implemented, hard coded, not in the data base and changable, no implementation means 404 page not found
 	// authorized.GET("/clubRoles/:role_uuid", getDTOClubRole)
 
 	authorized.GET("/federations/:fed_uuid/club/:club_uuid/officials/:role_uuid", getDTOClubOfficial)
+	authorized.PUT("/federations/:fed_uuid/club/:club_uuid/officials/:role_uuid", putDTOClubOfficial)
+	authorized.DELETE("/federations/:fed_uuid/club/:club_uuid/officials/:role_uuid", deleteDTOClubOfficial)
 
 	router.Run(":3030")
 }
