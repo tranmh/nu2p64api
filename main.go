@@ -433,7 +433,7 @@ func putDTOFederation(c *gin.Context) {
 						vkz)
 					VALUES ("` + federation.UUID.String() +
 					`", "` + federation.Name +
-					`", "` + federation.Fedration_NR + `)
+					`", "` + federation.Fedration_NR + `")
 				`
 				println(sqlInsertQuery)
 
@@ -555,7 +555,7 @@ func putDTOClub(c *gin.Context) {
 						vkz)
 					VALUES ("` + club.UUID.String() +
 					`", "` + club.Name +
-					`", "` + club.Club_NR + `)
+					`", "` + club.Club_NR + `")
 				`
 				println(sqlInsertQuery)
 
