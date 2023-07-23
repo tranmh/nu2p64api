@@ -835,18 +835,196 @@ func deleteDTOClubMember(c *gin.Context) {
 // table funktion
 func getDTOClubOfficial(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
-	// club_uuid := c.Param("club_uuid")
-	// role_uuid := c.Param("role_uuid")
+	club_uuid := c.Param("club_uuid")
+	role_uuid := c.Param("role_uuid")
 	var clubofficial DTOClubOfficial
-	c.JSON(501, clubofficial)
+
+	if isValidUUID(role_uuid) {
+		myUuid, _ := uuid.Parse(role_uuid)
+		clubofficial.UUID = myUuid
+
+		// TODO: we do not have and do not need member-uuid?
+		var sqlSelectQuery string = `
+			SELECT  
+				ifnull(organisation.uuid, ''),
+				ifnull(person.uuid, ''),
+				ifnull(funktion.funktionsalias, ''),
+				ifnull(funktion.von, ''),
+				ifnull(funktion.bis, '')
+			FROM funktion, 
+				organisation,
+				person
+			WHERE funktion.organisation = organisation.id AND 
+				funktion.person = person.id AND
+				funktion.uuid = "` + role_uuid + `"`
+		fmt.Println(sqlSelectQuery)
+
+		var tmpClubUuid string
+		var tmpPersonUuid string
+		var validFrom string
+		var validUntil string
+
+		err := db.QueryRow(sqlSelectQuery).
+			Scan(
+				&tmpClubUuid,
+				&tmpPersonUuid,
+				&clubofficial.Role_Name,
+				&validFrom,
+				&validUntil,
+			)
+
+		var parseErrClubUUID error
+		clubofficial.Club_UUID, parseErrClubUUID = uuid.Parse(tmpClubUuid)
+		if parseErrClubUUID != nil {
+			c.JSON(500, parseErrClubUUID.Error())
+			return
+		}
+		var parseErrPersonUUID error
+		clubofficial.Person_UUID, parseErrPersonUUID = uuid.Parse(tmpPersonUuid)
+		if parseErrPersonUUID != nil {
+			c.JSON(500, parseErrPersonUUID.Error())
+			return
+		}
+
+		fmt.Println(validFrom)
+		fmt.Println(validUntil)
+		const layoutISO = "2006-01-02"
+		if strings.Compare(validFrom, "") != 0 {
+			tValidFrom, parseBDError := time.Parse(layoutISO, validFrom)
+			if parseBDError != nil {
+				c.JSON(500, parseBDError.Error())
+				return
+			} else {
+				clubofficial.Valid_From = tValidFrom
+			}
+		}
+		if strings.Compare(validUntil, "") != 0 {
+			tValidUntil, parseBDError2 := time.Parse(layoutISO, validUntil)
+			if parseBDError2 != nil {
+				c.JSON(500, parseBDError2.Error())
+				return
+			} else {
+				clubofficial.Valid_Until = tValidUntil
+			}
+		}
+
+		if strings.Compare(club_uuid, clubofficial.Club_UUID.String()) != 0 {
+			c.JSON(400, "club_uuid as URL does not fit to the content in the database: "+club_uuid+" vs "+clubofficial.Club_UUID.String())
+			return
+		}
+
+		if err != nil {
+			c.JSON(500, err.Error())
+			return
+		}
+
+		c.JSON(200, clubofficial)
+
+	} else {
+		c.JSON(400, errors.New("uuid is not valid "+role_uuid))
+	}
 }
 
 func putDTOClubOfficial(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
 	// club_uuid := c.Param("club_uuid")
-	// role_uuid := c.Param("role_uuid")
+	role_uuid := c.Param("role_uuid")
 	var clubofficial DTOClubOfficial
-	c.JSON(501, clubofficial)
+
+	err := c.BindJSON(&clubofficial)
+	if err != nil {
+		c.JSON(400, err)
+		return
+	}
+
+	if strings.Compare(role_uuid, clubofficial.UUID.String()) != 0 {
+		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fits: "+role_uuid+" vs "+clubofficial.UUID.String()))
+		return
+	}
+
+	if isValidUUID(clubofficial.UUID.String()) {
+		myUuid, parseErr := uuid.Parse(clubofficial.UUID.String())
+
+		if parseErr != nil {
+			c.JSON(400, parseErr)
+			return
+		}
+
+		var count string
+		var sqlSelectQuery string = `select count(*) from funktion where uuid = "` + myUuid.String() + `"`
+		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
+		fmt.Printf(sqlSelectQuery)
+
+		if errDBExec != nil {
+			c.JSON(500, err.Error())
+		} else {
+
+			var person_id, errPersonId = getIDFromUUID("person", clubofficial.Person_UUID)
+			if errPersonId != nil {
+				c.JSON(400, errPersonId.Error())
+				return
+			}
+			var organisation_id, errOrganisationId = getIDFromUUID("organisation", clubofficial.Club_UUID)
+			if errOrganisationId != nil {
+				c.JSON(400, errOrganisationId.Error())
+				return
+			}
+			var fromStr = clubofficial.Valid_From.Format("2006-01-02")
+			var untilStr = clubofficial.Valid_Until.Format("2006-01-02")
+
+			if strings.Compare(count, "0") == 0 { // insert
+
+				// TODO add funktion as id as well
+				var sqlInsertQuery string = `
+					INSERT INTO funktion (
+						uuid,
+						organisation,
+						person,
+						funktionsalias,
+						von,
+						bis)
+					VALUES ("` + clubofficial.UUID.String() +
+					`", ` + strconv.Itoa(organisation_id) +
+					`,` + strconv.Itoa(person_id) +
+					`, "` + clubofficial.Role_Name +
+					`", "` + fromStr +
+					`", "` + untilStr + `")
+				`
+				println(sqlInsertQuery)
+
+				_, err3 := db.Exec(sqlInsertQuery)
+
+				if err3 != nil {
+					c.JSON(400, err3.Error())
+				} else {
+					c.JSON(200, clubofficial)
+				}
+			} else if strings.Compare(count, "1") == 0 { // update
+
+				var sqlUpdateQuery string = `
+					UPDATE funktion set 
+						organisation = ` + strconv.Itoa(organisation_id) + `,
+						person = ` + strconv.Itoa(person_id) + `,
+						funktionsalias = "` + clubofficial.Role_Name + `",
+						von = "` + fromStr + `",
+						bis = "` + untilStr + `"
+					WHERE uuid = "` + clubofficial.UUID.String() + `"
+				`
+				println(sqlUpdateQuery)
+
+				_, err4 := db.Exec(sqlUpdateQuery)
+				if err4 != nil {
+					c.JSON(400, err4.Error())
+				} else {
+					c.JSON(200, clubofficial)
+				}
+			} else {
+				c.JSON(500, errors.New("panic, more than 1 club offical with same uuid: "+myUuid.String()))
+			}
+		}
+	} else {
+		c.JSON(400, errors.New("uuid is not valid"+clubofficial.UUID.String()))
+	}
 }
 
 func deleteDTOClubOfficial(c *gin.Context) {
