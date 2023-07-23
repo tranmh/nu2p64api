@@ -387,6 +387,9 @@ func getDTOFederation(c *gin.Context) {
 	}
 }
 
+// TODO, convert type and func putDTO* and func getDTO* to something using go generic to avoid copy & paste programming here!
+// https://www.google.com/search?q=golang+generics+function+for+interface
+
 func putDTOFederation(c *gin.Context) {
 	fed_uuid := c.Param("fed_uuid")
 
@@ -623,10 +626,81 @@ func deleteDTOAddress(c *gin.Context) {
 // table person and table mitgliedschaft
 func getDTOClubMember(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
-	// club_uuid := c.Param("club_uuid")
-	// clubmem_uuid := c.Param("clubmem_uuid")
+	club_uuid := c.Param("club_uuid")
+	clubmem_uuid := c.Param("clubmem_uuid")
 	var clubmember DTOClubMember
-	c.JSON(501, clubmember)
+
+	if isValidUUID(clubmem_uuid) {
+		myUuid, _ := uuid.Parse(clubmem_uuid)
+		clubmember.UUID = myUuid
+
+		// TODO: ask Holger. Semantic behind status, stat1 and stat2.
+		// TODO: ask Nu, how to map member-from, member-until, license-valid-from, license-valid-until
+		var sqlSelectQuery string = `
+			SELECT ifnull(organisation.uuid, ''), 
+				ifnull(person.uuid, ''), 
+				ifnull(mitgliedschaft.von, ''), 
+				ifnull(mitgliedschaft.bis, ''), 
+				ifnull(mitgliedschaft.stat1, ''),
+				ifnull(mitgliedschaft.spielernummer, '')
+			FROM mitgliedschaft, 
+				organisation,
+				person
+			WHERE mitgliedschaft.organisation = organisation.id AND 
+				mitgliedschaft.person = person.id AND
+				mitgliedschaft.uuid = "` + clubmem_uuid + `"`
+		fmt.Println(sqlSelectQuery)
+
+		var memberFrom string
+		var memberUntil string
+
+		err := db.QueryRow(sqlSelectQuery).
+			Scan(
+				&clubmember.Club_UUID,
+				&clubmember.Person_UUID,
+				&memberFrom,
+				&memberUntil,
+				&clubmember.License_State,
+				&clubmember.Member_Nr,
+			)
+
+		fmt.Println(memberFrom)
+		fmt.Println(memberUntil)
+		const layoutISO = "2006-01-02"
+		if strings.Compare(memberFrom, "") != 0 {
+			tMemberFrom, parseBDError := time.Parse(layoutISO, memberFrom)
+			if parseBDError != nil {
+				c.JSON(500, parseBDError.Error())
+				return
+			} else {
+				clubmember.Member_From = tMemberFrom
+			}
+		}
+		if strings.Compare(memberUntil, "") != 0 {
+			tMemberUntil, parseBDError2 := time.Parse(layoutISO, memberUntil)
+			if parseBDError2 != nil {
+				c.JSON(500, parseBDError2.Error())
+				return
+			} else {
+				clubmember.Member_Until = tMemberUntil
+			}
+		}
+
+		if strings.Compare(club_uuid, clubmember.Club_UUID.String()) != 0 {
+			c.JSON(400, "club_uuid as URL does not fit to the content in the database: "+club_uuid+" vs "+clubmember.Club_UUID.String())
+			return
+		}
+
+		if err != nil {
+			c.JSON(500, err.Error())
+			return
+		}
+
+		c.JSON(200, clubmember)
+
+	} else {
+		c.JSON(400, errors.New("uuid is not valid "+clubmem_uuid))
+	}
 }
 
 func putDTOClubMember(c *gin.Context) {
