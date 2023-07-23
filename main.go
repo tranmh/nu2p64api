@@ -63,8 +63,8 @@ type DTOAddress struct {
 	Phone_Mobile string    `json:"phone-mobile"` // github.com/dongri/phonenumber with phonenumber.Parse to validate
 	Phone_Home   string    `json:"phone-home"`   // dito
 	Phone_Work   string    `json:"phone-work"`   // dito
-	Longitude    int       `json:"longitude"`
-	Latitude     int       `json:"latitude"`
+	Longitude    float64   `json:"longitude"`
+	Latitude     float64   `json:"latitude"`
 }
 
 type DTOClub struct {
@@ -601,25 +601,192 @@ func deleteDTOClub(c *gin.Context) {
 	deleteDTOGeneric(c, club_uuid, deleteSQLStr)
 }
 
-// table adresse, adressen and adr
+// TODO, what happens to address of persons? This route at the moment is for club only. Get it from Table adresse
 func getDTOAddress(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
-	// club_uuid := c.Param("club_uuid")
+	addr_uuid := c.Param("addr_uuid")
 	var address DTOAddress
-	c.JSON(501, address)
+
+	if isValidUUID(addr_uuid) {
+
+		address.UUID, _ = uuid.Parse(addr_uuid)
+
+		var sqlQuerySelect = `
+			SELECT 
+				ifnull(adr.wert, ''),
+				ifnull(adr_art.id, '')
+			FROM adressen, adr, adr_art
+			WHERE
+				adressen.id = adr.id_adressen AND
+				adr_art.id = adr.id_art AND
+				adressen.uuid = "` + addr_uuid + "\""
+
+		fmt.Println(sqlQuerySelect)
+
+		rows, err := db.Query(sqlQuerySelect)
+		if err != nil {
+			c.JSON(400, err)
+			return
+		}
+		defer rows.Close()
+
+		var addrValue string
+		var addrId int
+		for rows.Next() {
+			err := rows.Scan(&addrValue, &addrId)
+			if err != nil {
+				c.JSON(401, err.Error())
+				return
+			}
+
+			if addrId == 2 {
+				address.Street = addrValue
+			}
+			if addrId == 3 {
+				address.ZIP = addrValue
+			}
+			if addrId == 4 {
+				address.City = addrValue
+			}
+			if addrId == 5 {
+				address.Country = addrValue
+			}
+			if addrId == 6 {
+				address.Phone_Home = addrValue
+			}
+			if addrId == 7 {
+				address.Phone_Mobile = addrValue
+			}
+			if addrId == 8 {
+				address.Phone_Work = addrValue
+			}
+			// 9 skip fax
+			if addrId == 10 {
+				address.Email = addrValue
+			}
+			if addrId == 11 {
+				address.Email2 = addrValue
+			}
+			if addrId == 15 {
+				address.WWW = addrValue
+			}
+			if addrId == 17 {
+				address.Latitude, err = strconv.ParseFloat(addrValue, 64)
+				if err != nil {
+					c.JSON(500, err)
+				}
+			}
+			if addrId == 18 {
+				address.Longitude, err = strconv.ParseFloat(addrValue, 64)
+				if err != nil {
+					c.JSON(500, err)
+				}
+			}
+		}
+		if err := rows.Err(); err != nil {
+			c.JSON(402, err)
+			return
+		}
+
+		c.JSON(200, address)
+
+	} else {
+		c.JSON(403, addr_uuid)
+	}
+}
+
+// TODO convert all error c.JSON(400, parseErr) to c.JSON(400, parseErr.Error())
+
+func updateAdrTableWithValue(addrValue string, id_address int, id_art int, c *gin.Context) {
+	var sqlUpdateQuery = `
+	UPDATE adr set 
+		wert = "` + addrValue + `"
+	WHERE id_adressen = ` + strconv.Itoa(id_address) + ` AND
+		id_art = ` + strconv.Itoa(id_art)
+	println(sqlUpdateQuery)
+	_, err := db.Exec(sqlUpdateQuery)
+	if err != nil {
+		c.JSON(400, err.Error())
+	}
 }
 
 func putDTOAddress(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
-	// club_uuid := c.Param("club_uuid")
-	var address DTOAddress
-	c.JSON(501, address)
+	addr_uuid := c.Param("addr_uuid")
+	var addressOfClub DTOAddress
+
+	err := c.BindJSON(&addressOfClub)
+	if err != nil {
+		c.JSON(400, err)
+		return
+	}
+
+	if strings.Compare(addr_uuid, addressOfClub.UUID.String()) != 0 {
+		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fits: "+addr_uuid+" vs "+addressOfClub.UUID.String()))
+		return
+	}
+
+	if isValidUUID(addressOfClub.UUID.String()) {
+		myUuid, _ := uuid.Parse(addressOfClub.UUID.String())
+
+		var count string
+		var sqlSelectQuery string = `select count(*) from adressen where uuid = "` + myUuid.String() + `"`
+		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
+		fmt.Printf(sqlSelectQuery)
+
+		if errDBExec != nil {
+			c.JSON(500, err.Error())
+		} else {
+
+			if strings.Compare(count, "0") == 0 { // insert
+
+				// TODO: to whome does this address belongs to in case of insert?
+
+				var sqlInsertQuery string = `
+					FIXME  to whome does this address belongs to in case of insert INSERT INTO adressen (
+						uuid)
+					VALUES ("` + addressOfClub.UUID.String() + `")
+				`
+				println(sqlInsertQuery)
+
+				_, err3 := db.Exec(sqlInsertQuery)
+
+				if err3 != nil {
+					c.JSON(400, err3.Error())
+				} else {
+					c.JSON(200, addressOfClub)
+				}
+			} else if strings.Compare(count, "1") == 0 { // update
+
+				var tmpIdAddress, _ = getIDFromUUID("adressen", addressOfClub.UUID)
+
+				updateAdrTableWithValue(addressOfClub.Street, tmpIdAddress, 2, c)
+				updateAdrTableWithValue(addressOfClub.ZIP, tmpIdAddress, 3, c)
+				updateAdrTableWithValue(addressOfClub.City, tmpIdAddress, 4, c)
+				updateAdrTableWithValue(addressOfClub.Country, tmpIdAddress, 5, c)
+				updateAdrTableWithValue(addressOfClub.Phone_Home, tmpIdAddress, 6, c)
+				updateAdrTableWithValue(addressOfClub.Phone_Mobile, tmpIdAddress, 7, c)
+				updateAdrTableWithValue(addressOfClub.Phone_Work, tmpIdAddress, 8, c)
+				updateAdrTableWithValue(addressOfClub.Email, tmpIdAddress, 10, c)
+				updateAdrTableWithValue(addressOfClub.Email2, tmpIdAddress, 11, c)
+				updateAdrTableWithValue(addressOfClub.WWW, tmpIdAddress, 15, c)
+				updateAdrTableWithValue(fmt.Sprintf("%v", addressOfClub.Latitude), tmpIdAddress, 17, c)
+				updateAdrTableWithValue(fmt.Sprintf("%v", addressOfClub.Longitude), tmpIdAddress, 18, c)
+
+				c.JSON(200, addressOfClub)
+			} else {
+				c.JSON(500, errors.New("panic, more than 1 address with same uuid: "+myUuid.String()))
+			}
+		}
+	} else {
+		c.JSON(400, errors.New("uuid is not valid"+addressOfClub.UUID.String()))
+	}
 }
 
 func deleteDTOAddress(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
 	address_uuid := c.Param("addr_uuid")
-	deleteSQLStr := "delete from adressen where uuid = ?" // TODO, ask Holger: what about table adr? What about table adresse?
+	deleteSQLStr := "delete from adressen where uuid = ?"
 	deleteDTOGeneric(c, address_uuid, deleteSQLStr)
 }
 
