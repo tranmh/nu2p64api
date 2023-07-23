@@ -703,12 +703,125 @@ func getDTOClubMember(c *gin.Context) {
 	}
 }
 
+func getUUIDFromID(tableName string, id int) (rUuid uuid.UUID, rErr error) {
+	var sqlQuerySelectUUID = "select uuid from " + tableName + " where id = " + strconv.Itoa(id)
+	var tmpUUID string
+	rErr = db.QueryRow(sqlQuerySelectUUID).Scan(&tmpUUID)
+	if rErr == nil {
+		rUuid, parseErr := uuid.Parse(tmpUUID)
+		if parseErr == nil {
+			return rUuid, nil
+		} else {
+			return rUuid, parseErr
+		}
+	} else {
+		return rUuid, rErr
+	}
+}
+
+func getIDFromUUID(tableName string, myUuid uuid.UUID) (id int, rErr error) {
+	var sqlQuerySelectID = "select id from " + tableName + " where uuid = \"" + myUuid.String() + "\""
+	var tmpId int
+	rErr = db.QueryRow(sqlQuerySelectID).Scan(&tmpId)
+	return tmpId, rErr
+}
+
 func putDTOClubMember(c *gin.Context) {
 	// fed_uuid := c.Param("fed_uuid")
 	// club_uuid := c.Param("club_uuid")
-	// clubmem_uuid := c.Param("clubmem_uuid")
+	clubmem_uuid := c.Param("clubmem_uuid")
 	var clubmember DTOClubMember
-	c.JSON(501, clubmember)
+
+	err := c.BindJSON(&clubmember)
+	if err != nil {
+		c.JSON(400, err)
+		return
+	}
+
+	if strings.Compare(clubmem_uuid, clubmember.UUID.String()) != 0 {
+		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fits: "+clubmem_uuid+" vs "+clubmember.UUID.String()))
+		return
+	}
+
+	if isValidUUID(clubmember.UUID.String()) {
+		myUuid, parseErr := uuid.Parse(clubmember.UUID.String())
+
+		if parseErr != nil {
+			c.JSON(400, parseErr)
+			return
+		}
+
+		if !isValidUUID(myUuid.String()) {
+			c.JSON(400, errors.New("myUuid is not a valid UUID: "+myUuid.String()))
+			return
+		}
+
+		var count string
+		var sqlSelectQuery string = `select count(*) from mitgliedschaft where uuid = "` + myUuid.String() + `"`
+		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
+		fmt.Printf(sqlSelectQuery)
+
+		if errDBExec != nil {
+			c.JSON(500, err.Error())
+		} else {
+
+			var person_id, _ = getIDFromUUID("person", clubmember.Person_UUID)
+			var organisation_id, _ = getIDFromUUID("organisation", clubmember.Club_UUID)
+			var fromStr = clubmember.Member_From.Format("2006-01-02")
+			var untilStr = clubmember.Member_Until.Format("2006-01-02")
+
+			if strings.Compare(count, "0") == 0 { // insert
+
+				var sqlInsertQuery string = `
+					INSERT INTO mitgliedschaft (
+						uuid,
+						person,
+						organisation,
+						von,
+						bis,
+						spielernummer)
+					VALUES ("` + clubmember.UUID.String() +
+					`", ` + strconv.Itoa(person_id) +
+					`, "` + strconv.Itoa(organisation_id) +
+					`", "` + fromStr +
+					`", "` + untilStr +
+					`", ` + strconv.Itoa(clubmember.Member_Nr) + `)
+				`
+				println(sqlInsertQuery)
+
+				_, err3 := db.Exec(sqlInsertQuery)
+
+				if err3 != nil {
+					c.JSON(400, err3.Error())
+				} else {
+					c.JSON(200, clubmember)
+				}
+			} else if strings.Compare(count, "1") == 0 { // update
+
+				var sqlUpdateQuery string = `
+					UPDATE mitgliedschaft set 
+						person = ` + strconv.Itoa(person_id) + `,
+						organisation = ` + strconv.Itoa(organisation_id) + `,
+						von = "` + fromStr + `",
+						bis = "` + untilStr + `",
+						spielernummer = ` + strconv.Itoa(clubmember.Member_Nr) + `
+					WHERE uuid = "` + clubmember.UUID.String() + `"
+				`
+				println(sqlUpdateQuery)
+
+				_, err4 := db.Exec(sqlUpdateQuery)
+				if err4 != nil {
+					c.JSON(400, err4.Error())
+				} else {
+					c.JSON(200, clubmember)
+				}
+			} else {
+				c.JSON(500, errors.New("panic, more than 1 club member with same uuid: "+myUuid.String()))
+			}
+		}
+	} else {
+		c.JSON(400, errors.New("uuid is not valid"+clubmember.UUID.String()))
+	}
 }
 
 func deleteDTOClubMember(c *gin.Context) {
