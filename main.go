@@ -244,7 +244,7 @@ func deleteDTOPerson(c *gin.Context) {
 func convertTitleToTitleID(title string) int {
 	if strings.Compare(title, "") == 0 {
 		return 1
-	} else if strings.Compare(title, "Dr") == 0 {
+	} else if strings.Compare(title, "Dr.") == 0 {
 		return 2
 	} else if strings.Compare(title, "Prof.") == 0 {
 		return 3
@@ -386,9 +386,6 @@ func getDTOFederation(c *gin.Context) {
 		c.JSON(400, fed_uuid)
 	}
 }
-
-// TODO, convert type and func putDTO* and func getDTO* to something using go generic to avoid copy & paste programming here!
-// https://www.google.com/search?q=golang+generics+function+for+interface
 
 func putDTOFederation(c *gin.Context) {
 	fed_uuid := c.Param("fed_uuid")
