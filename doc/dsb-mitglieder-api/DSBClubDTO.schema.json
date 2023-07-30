@@ -28,7 +28,8 @@
             "format": "uuid"
         },
         "club-nr": {"type": "string"},
-        "name": {"type": "string"}
+        "name": {"type": "string"},
+        "nickname": {"type": "string"}
     },
     "required": [
         "uuid",

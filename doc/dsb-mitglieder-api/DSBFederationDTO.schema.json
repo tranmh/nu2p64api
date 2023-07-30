@@ -6,7 +6,7 @@
     "$comment": "public properties",
     "properties": {
         "uuid": {"type": "string", "format": "uuid"},
-        "federation-nr": {"type": "integer"},
+        "federation-nr": {"type": "string"},
         "name": {"type": "string"},
         "nickname": {"type": "string"},
         "region-uuid": {"type": "string", "format": "uuid"}

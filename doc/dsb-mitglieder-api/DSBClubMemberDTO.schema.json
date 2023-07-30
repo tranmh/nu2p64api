@@ -5,17 +5,45 @@
     "type": "object",
     "$comment": "public properties",
     "properties": {
-        "uuid": {"type": "string", "format": "uuid"},
-        "club-uuid": {"type": "string", "format": "uuid"},
-        "person-uuid": {"type": "string", "format": "uuid"},
-        "member-from": {"type": "string", "format": "date"},
-        "member-until": {"type": "string", "format": "date"},
-        "licence-state": {
-            "enum": ["ACTIVE", "PASSIVE", "NO_LICENCE"]
+        "uuid": {
+            "type": "string",
+            "format": "uuid"
         },
-        "licence-valid-from": {"type": "string", "format": "date"},
-        "licence-valid-until": {"type": "string", "format": "date"},
-        "member-nr": {"type": "number"}
+        "club-uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "person-uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "member-from": {
+            "type": "string",
+            "format": "date"
+        },
+        "member-until": {
+            "type": "string",
+            "format": "date"
+        },
+        "licence-state": {
+            "enum": [
+                "ACTIVE",
+                "PASSIVE",
+                "NO_LICENCE"
+            ]
+        },
+        "licence-valid-from": {
+            "type": "string",
+            "format": "date"
+        },
+        "licence-valid-until": {
+            "type": "string",
+            "format": "date"
+        },
+        "member-nr": {
+            "type": "number",
+            "$comment": "= PKZ"
+        }
     },
     "required": [
         "uuid",

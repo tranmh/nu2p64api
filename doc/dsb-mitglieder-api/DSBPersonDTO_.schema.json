@@ -13,6 +13,7 @@
         "birthplace": {"type": "string"},
         "birthname": {"type": "string"},
         "remarks": {"type": "string"},
-        "dead": {"type": "integer"}
+        "dead": {"type": "integer"},
+	"privacy-state: {"type": "integer"}
     }
 }

@@ -1,8 +1,8 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema#",
-    "type": "object",
     "title": "DSBPersonDTO",
     "description": "Verbandsdaten, die an ALLE endpoints geliefert werden",
+    "type": "object",
     "$comment": "public properties",
     "properties": {
         "uuid": {
