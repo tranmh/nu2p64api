@@ -21,6 +21,28 @@ var (
 	basicAuthPassword         string
 )
 
+// https://romangaranin.net/posts/2021-02-19-json-time-and-golang/
+
+type CivilTime time.Time
+
+func (c *CivilTime) UnmarshalJSON(b []byte) error {
+	value := strings.Trim(string(b), `"`) //get rid of "
+	if value == "" || value == "null" {
+		return nil
+	}
+
+	t, err := time.Parse("2006-01-02", value) //parse time
+	if err != nil {
+		return err
+	}
+	*c = CivilTime(t) //set result using the pointer
+	return nil
+}
+
+func (c CivilTime) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + time.Time(c).Format("2006-01-02") + `"`), nil
+}
+
 type Gender int
 
 const (
@@ -86,11 +108,11 @@ type DTOClubMember struct {
 	UUID                uuid.UUID `json:"uuid"`
 	Club_UUID           uuid.UUID `json:"club-uuid"`
 	Person_UUID         uuid.UUID `json:"person-uuid"`
-	Member_From         time.Time `json:"member-from"`
-	Member_Until        time.Time `json:"member-until"`
+	Member_From         CivilTime `json:"member-from"`
+	Member_Until        CivilTime `json:"member-until"`
 	License_State       string    `json:"licence-state"` // ACTIVE, PASSIVE, NO_LICENSE
-	License_Valid_From  time.Time `json:"license-valid-from"`
-	License_Valid_Until time.Time `json:"license-valid-until"`
+	License_Valid_From  CivilTime `json:"license-valid-from"`
+	License_Valid_Until CivilTime `json:"license-valid-until"`
 	Member_Nr           int       `json:"member-nr"`
 }
 
@@ -100,8 +122,8 @@ type DTOClubOfficial struct {
 	Member_UUID uuid.UUID `json:"member-uuid"`
 	Person_UUID uuid.UUID `json:"person-uuid"`
 	Role_Name   string    `json:"role-name"`
-	Valid_From  time.Time `json:"valid-from"`
-	Valid_Until time.Time `json:"valid-until"`
+	Valid_From  CivilTime `json:"valid-from"`
+	Valid_Until CivilTime `json:"valid-until"`
 }
 
 type DTOFederation struct {
@@ -119,11 +141,11 @@ type DTOPerson struct {
 	LastName  string    `json:"lastname"`
 	Title     string    `json:"title"`
 	// Gender    Gender    `json:"gender"`
-	Gender    string `json:"gender"`
-	BirthYear int    `json:"birthyear"`
-	// AddressUUID  string    `json:"gen"`
-	// BirthDate    time.Time `json:"region-uuid"`
-	// BirthPlace   string `json:"region-uuid"`
+	Gender string `json:"gender"`
+	// BirthYear int    `json:"birthyear"`
+	// AddressUUID  string    `json:"address-uuid"`
+	BirthDate CivilTime `json:"birthdate"`
+	// BirthPlace   string `json:"birthplace"`
 	Nation        string `json:"nation"`
 	Privacy_State string `json:"privacy-state"`
 	FIDE_Title    string `json:"fide-title"`
@@ -179,7 +201,7 @@ func getDTOPerson(c *gin.Context) {
 				&tmpBirthDay,
 				&person.Nation,
 				&person.Privacy_State, // TODO: NULL, 0 or 1, 1 means accepted?
-				// TODO we do not have FIDE_Title
+				// we do not have FIDE_Title, so ignore
 				&person.FIDE_Nation,
 				&person.FIDE_Id,
 			)
@@ -197,7 +219,7 @@ func getDTOPerson(c *gin.Context) {
 		if parseBDError != nil {
 			c.JSON(500, parseBDError.Error())
 		} else {
-			person.BirthYear = t.Year()
+			person.BirthDate = CivilTime(t)
 		}
 
 		if err != nil {
@@ -287,7 +309,7 @@ func putDTOPerson(c *gin.Context) {
 		} else {
 			var title = convertTitleToTitleID(person.Title)
 			var gender = getGender(person.Gender)
-			var birthday = strconv.Itoa(person.BirthYear) + "-01-01"
+			var birthday = strconv.Itoa(time.Time(person.BirthDate).Year()) + "-" + strconv.Itoa(int(time.Time(person.BirthDate).Month())) + "-" + strconv.Itoa(time.Time(person.BirthDate).Day())
 			if strings.Compare(person.FIDE_Id, "") == 0 {
 				person.FIDE_Id = "NULL"
 			}
@@ -837,7 +859,7 @@ func getDTOClubMember(c *gin.Context) {
 				c.JSON(500, parseBDError.Error())
 				return
 			} else {
-				clubmember.Member_From = tMemberFrom
+				clubmember.Member_From = CivilTime(tMemberFrom)
 			}
 		}
 		if strings.Compare(memberUntil, "") != 0 {
@@ -846,7 +868,7 @@ func getDTOClubMember(c *gin.Context) {
 				c.JSON(500, parseBDError2.Error())
 				return
 			} else {
-				clubmember.Member_Until = tMemberUntil
+				clubmember.Member_Until = CivilTime(tMemberUntil)
 			}
 		}
 
@@ -931,8 +953,8 @@ func putDTOClubMember(c *gin.Context) {
 
 			var person_id, _ = getIDFromUUID("person", clubmember.Person_UUID)
 			var organisation_id, _ = getIDFromUUID("organisation", clubmember.Club_UUID)
-			var fromStr = clubmember.Member_From.Format("2006-01-02")
-			var untilStr = clubmember.Member_Until.Format("2006-01-02")
+			var fromStr = time.Time(clubmember.Member_From).Format("2006-01-02")
+			var untilStr = time.Time(clubmember.Member_Until).Format("2006-01-02")
 
 			if strings.Compare(count, "0") == 0 { // insert
 
@@ -1059,7 +1081,7 @@ func getDTOClubOfficial(c *gin.Context) {
 				c.JSON(500, parseBDError.Error())
 				return
 			} else {
-				clubofficial.Valid_From = tValidFrom
+				clubofficial.Valid_From = CivilTime(tValidFrom)
 			}
 		}
 		if strings.Compare(validUntil, "") != 0 {
@@ -1068,7 +1090,7 @@ func getDTOClubOfficial(c *gin.Context) {
 				c.JSON(500, parseBDError2.Error())
 				return
 			} else {
-				clubofficial.Valid_Until = tValidUntil
+				clubofficial.Valid_Until = CivilTime(tValidUntil)
 			}
 		}
 
@@ -1133,8 +1155,8 @@ func putDTOClubOfficial(c *gin.Context) {
 				c.JSON(400, errOrganisationId.Error())
 				return
 			}
-			var fromStr = clubofficial.Valid_From.Format("2006-01-02")
-			var untilStr = clubofficial.Valid_Until.Format("2006-01-02")
+			var fromStr = time.Time(clubofficial.Valid_From).Format("2006-01-02")
+			var untilStr = time.Time(clubofficial.Valid_Until).Format("2006-01-02")
 
 			if strings.Compare(count, "0") == 0 { // insert
 
@@ -1199,6 +1221,10 @@ func deleteDTOClubOfficial(c *gin.Context) {
 	deleteDTOGeneric(c, role_uuid, deleteSQLStr)
 }
 
+func putDTORegion(c *gin.Context) {
+	c.JSON(204, "Mivis does not support Region, so ignore and no handling of input.")
+}
+
 func main() {
 
 	flag.StringVar(&yourMySQLdatabasepassword, "yourMySQLdatabasepassword", "NOT_SET", "your MySQL database password")
@@ -1221,35 +1247,30 @@ func main() {
 		basicAuthUsername: basicAuthPassword,
 	}))
 
-	// Not implemented, since there is no region in portal64 according to Holger, no implementation means 404 page not found
-	// authorized.GET("/regions/:reg_uuid", getDTORegion)
-	// authorized.PUT("/regions/:reg_uuid", putDTORegion)
+	authorized.PUT("/regions/:reg_uuid", putDTORegion)
 
 	authorized.GET("/federations/:fed_uuid", getDTOFederation)
 	authorized.PUT("/federations/:fed_uuid", putDTOFederation)
 
-	authorized.GET("/federations/:fed_uuid/clubs/:club_uuid", getDTOClub)
-	authorized.PUT("/federations/:fed_uuid/clubs/:club_uuid", putDTOClub)
-	authorized.DELETE("/federations/:fed_uuid/clubs/:club_uuid", deleteDTOClub)
+	authorized.GET("/clubs/:club_uuid", getDTOClub)
+	authorized.PUT("/clubs/:club_uuid", putDTOClub)
+	authorized.DELETE("/clubs/:club_uuid", deleteDTOClub)
 
-	authorized.GET("/federations/:fed_uuid/addresses/:addr_uuid", getDTOAddress)
-	authorized.PUT("/federations/:fed_uuid/addresses/:addr_uuid", putDTOAddress)
-	authorized.DELETE("/federations/:fed_uuid/addresses/:addr_uuid", deleteDTOAddress)
+	authorized.GET("/addresses/:addr_uuid", getDTOAddress)
+	authorized.PUT("/addresses/:addr_uuid", putDTOAddress)
+	authorized.DELETE("/addresses/:addr_uuid", deleteDTOAddress)
 
-	authorized.GET("/federations/:fed_uuid/persons/:pers_uuid", getDTOPerson)
-	authorized.PUT("/federations/:fed_uuid/persons/:pers_uuid", putDTOPerson)
-	authorized.DELETE("/federations/:fed_uuid/persons/:pers_uuid", deleteDTOPerson)
+	authorized.GET("/persons/:pers_uuid", getDTOPerson)
+	authorized.PUT("/persons/:pers_uuid", putDTOPerson)
+	authorized.DELETE("/persons/:pers_uuid", deleteDTOPerson)
 
-	authorized.GET("/federations/:fed_uuid/club/:club_uuid/member/:clubmem_uuid", getDTOClubMember)
-	authorized.PUT("/federations/:fed_uuid/club/:club_uuid/member/:clubmem_uuid", putDTOClubMember)
-	authorized.DELETE("/federations/:fed_uuid/club/:club_uuid/member/:clubmem_uuid", deleteDTOClubMember)
+	authorized.GET("/club-members/:clubmem_uuid", getDTOClubMember)
+	authorized.PUT("/club-members/:clubmem_uuid", putDTOClubMember)
+	authorized.DELETE("/club-members/:clubmem_uuid", deleteDTOClubMember)
 
-	// Not implemented, hard coded, not in the data base and changable, no implementation means 404 page not found
-	// authorized.GET("/clubRoles/:role_uuid", getDTOClubRole)
-
-	authorized.GET("/federations/:fed_uuid/club/:club_uuid/officials/:role_uuid", getDTOClubOfficial)
-	authorized.PUT("/federations/:fed_uuid/club/:club_uuid/officials/:role_uuid", putDTOClubOfficial)
-	authorized.DELETE("/federations/:fed_uuid/club/:club_uuid/officials/:role_uuid", deleteDTOClubOfficial)
+	authorized.GET("/club-officials/:role_uuid", getDTOClubOfficial)
+	authorized.PUT("/club-officials/:role_uuid", putDTOClubOfficial)
+	authorized.DELETE("/club-officials/:role_uuid", deleteDTOClubOfficial)
 
 	router.Run(":3030")
 }
