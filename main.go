@@ -90,18 +90,21 @@ type DTOAddress struct {
 }
 
 type DTOClub struct {
-	UUID            uuid.UUID `json:"uuid"`
-	Federation_UUID uuid.UUID `json:"federation-uuid"`
-	Region_UUID     uuid.UUID `json:"region-uuid"`
-	Club_NR         string    `json:"club-nr"`
-	Name            string    `json:"name"`
-	/*
-		Entry_Date           time.Time   `json:"uuid"`
-		Archived_Date        time.Time   `json:"uuid"`
-		Contact_Address_UUID uuid.UUID   `json:"uuid"`
-		Invoice_Address_UUID uuid.UUID   `json:"uuid"`
-		Sport_Address_UUIDs  []uuid.UUID `json:"uuid"`
-	*/
+	UUID                        uuid.UUID   `json:"uuid"`
+	Federation_UUID             uuid.UUID   `json:"federation-uuid"`
+	Region_UUID                 uuid.UUID   `json:"region-uuid"`
+	Club_NR                     string      `json:"club-nr"`
+	Name                        string      `json:"name"`
+	Entry_Date                  CivilTime   `json:"entry-date"`
+	Contact_Address_UUID        uuid.UUID   `json:"contact-address-uuid"`
+	Sport_Address_UUIDs         []uuid.UUID `json:"sport-address-uuids"`
+	Register_Of_Associations_Nr string      `json:"register-of-associations-nr"`
+	Club_Type                   string      `json:"club-type"`
+	Bank_Account_Owner          string      `json:"bank-account-owner"`
+	Bank_Account_Bank           string      `json:"bank-account-bank"`
+	Bank_Account_BIC            string      `json:"bank-account-big"`
+	Bank_Account_IBAN           string      `json:"bank-account-iban"`
+	Direct_Debit                bool        `json:"direct-debit"`
 }
 
 type DTOClubMember struct {
@@ -127,8 +130,7 @@ type DTOClubOfficial struct {
 }
 
 type DTOFederation struct {
-	UUID uuid.UUID `json:"uuid"`
-	// Fedration_NR int       `json:"fedreation-nr"` // TODO, it is better to you string instead of int here, since we are using vkz C00 for Schachverband Württemberg
+	UUID         uuid.UUID `json:"uuid"`
 	Fedration_NR string    `json:"fedreation-nr"`
 	Name         string    `json:"name"`
 	NickName     string    `json:"nickname"`
@@ -136,21 +138,22 @@ type DTOFederation struct {
 }
 
 type DTOPerson struct {
-	UUID      uuid.UUID `json:"uuid"`
-	FirstName string    `json:"firstname"`
-	LastName  string    `json:"lastname"`
-	Title     string    `json:"title"`
-	// Gender    Gender    `json:"gender"`
-	Gender string `json:"gender"`
-	// BirthYear int    `json:"birthyear"`
-	// AddressUUID  string    `json:"address-uuid"`
-	BirthDate CivilTime `json:"birthdate"`
-	// BirthPlace   string `json:"birthplace"`
-	Nation        string `json:"nation"`
-	Privacy_State string `json:"privacy-state"`
-	FIDE_Title    string `json:"fide-title"`
-	FIDE_Nation   string `json:"fide-nation"`
-	FIDE_Id       string `json:"fide-id"`
+	UUID          uuid.UUID `json:"uuid"`
+	FirstName     string    `json:"firstname"`
+	LastName      string    `json:"lastname"`
+	Title         string    `json:"title"`
+	Gender        string    `json:"gender"`
+	AddressUUID   uuid.UUID `json:"address-uuid"`
+	BirthDate     CivilTime `json:"birthdate"`
+	BirthPlace    string    `json:"birthplace"`
+	BirthName     string    `json:"birthname"`
+	Dead          int       `json:"dead"`
+	Nation        string    `json:"nation"`
+	Privacy_State string    `json:"privacy-state"`
+	Remarks       string    `json:"remarks"`
+	FIDE_Title    string    `json:"fide-title"`
+	FIDE_Nation   string    `json:"fide-nation"`
+	FIDE_Id       string    `json:"fide-id"`
 }
 
 type DTORegion struct {
@@ -168,7 +171,6 @@ func isValidUUID(u string) bool {
 
 // select
 func getDTOPerson(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
 	uuidParam := c.Param("pers_uuid")
 
 	var person DTOPerson
@@ -257,7 +259,6 @@ func deleteDTOGeneric(c *gin.Context, uuidParam string, deleteSQLStr string) {
 
 // delete
 func deleteDTOPerson(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
 	uuidParam := c.Param("pers_uuid")
 	deleteSQLStr := "delete from person where uuid = ?"
 	deleteDTOGeneric(c, uuidParam, deleteSQLStr)
@@ -493,7 +494,6 @@ func putDTOFederation(c *gin.Context) {
 
 // table organisation as well
 func getDTOClub(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
 	club_uuid := c.Param("club_uuid")
 	var club DTOClub
 
@@ -532,7 +532,6 @@ func getDTOClub(c *gin.Context) {
 }
 
 func putDTOClub(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
 	club_uuid := c.Param("club_uuid")
 	var club DTOClub
 	err := c.BindJSON(&club)
@@ -614,7 +613,6 @@ func putDTOClub(c *gin.Context) {
 }
 
 func deleteDTOClub(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
 	club_uuid := c.Param("club_uuid")
 	deleteSQLStr := "delete from organisation where uuid = ?"
 	deleteDTOGeneric(c, club_uuid, deleteSQLStr)
@@ -622,7 +620,6 @@ func deleteDTOClub(c *gin.Context) {
 
 // TODO, what happens to address of persons? This route at the moment is for club only. Get it from Table adresse
 func getDTOAddress(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
 	addr_uuid := c.Param("addr_uuid")
 	var address DTOAddress
 
@@ -730,7 +727,6 @@ func updateAdrTableWithValue(addrValue string, id_address int, id_art int, c *gi
 }
 
 func putDTOAddress(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
 	addr_uuid := c.Param("addr_uuid")
 	var addressOfClub DTOAddress
 
@@ -803,7 +799,6 @@ func putDTOAddress(c *gin.Context) {
 }
 
 func deleteDTOAddress(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
 	address_uuid := c.Param("addr_uuid")
 	deleteSQLStr := "delete from adressen where uuid = ?"
 	deleteDTOGeneric(c, address_uuid, deleteSQLStr)
@@ -811,7 +806,6 @@ func deleteDTOAddress(c *gin.Context) {
 
 // table person and table mitgliedschaft
 func getDTOClubMember(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
 	club_uuid := c.Param("club_uuid")
 	clubmem_uuid := c.Param("clubmem_uuid")
 	var clubmember DTOClubMember
@@ -913,8 +907,6 @@ func getIDFromUUID(tableName string, myUuid uuid.UUID) (id int, rErr error) {
 }
 
 func putDTOClubMember(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
-	// club_uuid := c.Param("club_uuid")
 	clubmem_uuid := c.Param("clubmem_uuid")
 	var clubmember DTOClubMember
 
@@ -1011,8 +1003,6 @@ func putDTOClubMember(c *gin.Context) {
 }
 
 func deleteDTOClubMember(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
-	// club_uuid := c.Param("club_uuid")
 	clubmem_uuid := c.Param("clubmem_uuid")
 	deleteSQLStr := "delete from mitgliedschaft where uuid = ?"
 	deleteDTOGeneric(c, clubmem_uuid, deleteSQLStr)
@@ -1020,13 +1010,11 @@ func deleteDTOClubMember(c *gin.Context) {
 
 // table funktion
 func getDTOClubOfficial(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
-	club_uuid := c.Param("club_uuid")
-	role_uuid := c.Param("role_uuid")
+	official_uuid := c.Param("official_uuid")
 	var clubofficial DTOClubOfficial
 
-	if isValidUUID(role_uuid) {
-		myUuid, _ := uuid.Parse(role_uuid)
+	if isValidUUID(official_uuid) {
+		myUuid, _ := uuid.Parse(official_uuid)
 		clubofficial.UUID = myUuid
 
 		// TODO: we do not have and do not need member-uuid?
@@ -1042,7 +1030,7 @@ func getDTOClubOfficial(c *gin.Context) {
 				person
 			WHERE funktion.organisation = organisation.id AND 
 				funktion.person = person.id AND
-				funktion.uuid = "` + role_uuid + `"`
+				funktion.uuid = "` + official_uuid + `"`
 		fmt.Println(sqlSelectQuery)
 
 		var tmpClubUuid string
@@ -1094,11 +1082,6 @@ func getDTOClubOfficial(c *gin.Context) {
 			}
 		}
 
-		if strings.Compare(club_uuid, clubofficial.Club_UUID.String()) != 0 {
-			c.JSON(400, "club_uuid as URL does not fit to the content in the database: "+club_uuid+" vs "+clubofficial.Club_UUID.String())
-			return
-		}
-
 		if err != nil {
 			c.JSON(500, err.Error())
 			return
@@ -1107,14 +1090,12 @@ func getDTOClubOfficial(c *gin.Context) {
 		c.JSON(200, clubofficial)
 
 	} else {
-		c.JSON(400, errors.New("uuid is not valid "+role_uuid))
+		c.JSON(400, errors.New("uuid is not valid "+official_uuid))
 	}
 }
 
 func putDTOClubOfficial(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
-	// club_uuid := c.Param("club_uuid")
-	role_uuid := c.Param("role_uuid")
+	official_uuid := c.Param("official_uuid")
 	var clubofficial DTOClubOfficial
 
 	err := c.BindJSON(&clubofficial)
@@ -1123,8 +1104,8 @@ func putDTOClubOfficial(c *gin.Context) {
 		return
 	}
 
-	if strings.Compare(role_uuid, clubofficial.UUID.String()) != 0 {
-		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fits: "+role_uuid+" vs "+clubofficial.UUID.String()))
+	if strings.Compare(official_uuid, clubofficial.UUID.String()) != 0 {
+		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fits: "+official_uuid+" vs "+clubofficial.UUID.String()))
 		return
 	}
 
@@ -1214,11 +1195,9 @@ func putDTOClubOfficial(c *gin.Context) {
 }
 
 func deleteDTOClubOfficial(c *gin.Context) {
-	// fed_uuid := c.Param("fed_uuid")
-	// club_uuid := c.Param("club_uuid")
-	role_uuid := c.Param("role_uuid")
+	official_uuid := c.Param("official_uuid")
 	deleteSQLStr := "delete from funktion where uuid = ?"
-	deleteDTOGeneric(c, role_uuid, deleteSQLStr)
+	deleteDTOGeneric(c, official_uuid, deleteSQLStr)
 }
 
 func putDTORegion(c *gin.Context) {
@@ -1268,9 +1247,9 @@ func main() {
 	authorized.PUT("/club-members/:clubmem_uuid", putDTOClubMember)
 	authorized.DELETE("/club-members/:clubmem_uuid", deleteDTOClubMember)
 
-	authorized.GET("/club-officials/:role_uuid", getDTOClubOfficial)
-	authorized.PUT("/club-officials/:role_uuid", putDTOClubOfficial)
-	authorized.DELETE("/club-officials/:role_uuid", deleteDTOClubOfficial)
+	authorized.GET("/club-officials/:official_uuid", getDTOClubOfficial)
+	authorized.PUT("/club-officials/:official_uuid", putDTOClubOfficial)
+	authorized.DELETE("/club-officials/:official_uuid", deleteDTOClubOfficial)
 
 	router.Run(":3030")
 }
