@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -15,6 +18,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -23,6 +27,68 @@ var (
 	basicAuthUsername         string
 	basicAuthPassword         string
 )
+
+// -----------------------------------------------------------------------------
+// https://medium.com/pengenpaham/implement-basic-logging-with-gin-and-logrus-5f36fba69b28
+
+func LoggingMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// Starting time
+		startTime := time.Now()
+
+		// Processing request
+		// ctx.Next() // bug?
+
+		// End Time
+		endTime := time.Now()
+
+		// execution time
+		latencyTime := endTime.Sub(startTime)
+
+		// Request method
+		reqMethod := ctx.Request.Method
+
+		// Request route
+		reqUri := ctx.Request.RequestURI
+
+		// status code
+		statusCode := ctx.Writer.Status()
+
+		// Request IP
+		clientIP := ctx.ClientIP()
+
+		reqBody, _ := ioutil.ReadAll(ctx.Request.Body)
+		ctx.Request.Body = ioutil.NopCloser(bytes.NewReader(reqBody))
+
+		log.WithFields(log.Fields{
+			"6_BODY":      string(reqBody),
+			"5_METHOD":    reqMethod,
+			"2_URI":       reqUri,
+			"3_STATUS":    statusCode,
+			"4_LATENCY":   latencyTime,
+			"1_CLIENT_IP": clientIP,
+		}).Info("HTTP REQUEST")
+
+		ctx.Next()
+	}
+}
+
+func initLog() {
+	// load environment variable
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	// setup logrus
+	logLevel, err := log.ParseLevel(os.Getenv("LOG_LEVEL"))
+	if err != nil {
+		logLevel = log.InfoLevel
+	}
+
+	log.SetLevel(logLevel)
+	log.SetFormatter(&log.JSONFormatter{})
+}
 
 // -----------------------------------------------------------------------------
 // https://seefnasrul.medium.com/create-your-first-go-rest-api-with-jwt-authentication-in-gin-framework-dbe5bda72817
@@ -343,6 +409,10 @@ type DTOPlayerLicense struct {
 }
 
 // -----------------------------------------------------------------------------
+
+func init() {
+	initLog()
+}
 
 func isValidUUID(u string) bool {
 	_, err := uuid.Parse(u)
@@ -1412,7 +1482,10 @@ func main() {
 	}
 	defer db.Close()
 
-	router := gin.Default()
+	router := gin.New()
+
+	router.Use(gin.Recovery())
+	router.Use(LoggingMiddleware())
 
 	public := router.Group("/public")
 
@@ -1454,9 +1527,9 @@ func main() {
 	authorized.PUT("/club-officials/:official_uuid", putDTOClubOfficial)
 	authorized.DELETE("/club-officials/:official_uuid", deleteDTOClubOfficial)
 
-	authorized.GET("/player-licences/:official_uuid", getDTOPlayerLicense)
-	authorized.PUT("/player-licences/:official_uuid", putDTOPlayerLicense)
-	authorized.DELETE("/player-licences/:official_uuid", deleteDTOPlayerLicense)
+	authorized.GET("/player-licences/:license_uuid", getDTOPlayerLicense)
+	authorized.PUT("/player-licences/:license_uuid", putDTOPlayerLicense)
+	authorized.DELETE("/player-licences/:license_uuid", deleteDTOPlayerLicense)
 
 	router.Run(":3030")
 }
