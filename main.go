@@ -480,7 +480,7 @@ func getDTOPerson(c *gin.Context) {
 			c.JSON(200, person)
 		}
 	} else {
-		c.JSON(400, uuidParam)
+		c.JSON(400, "uuidParam is not valid: "+uuidParam)
 	}
 }
 
@@ -503,7 +503,7 @@ func deleteDTOGeneric(c *gin.Context, uuidParam string, deleteSQLStr string) {
 			}
 		}
 	} else {
-		c.JSON(400, uuidParam)
+		c.JSON(400, "uuidParam is not valid: "+uuidParam)
 	}
 }
 
@@ -533,7 +533,7 @@ func putDTOPerson(c *gin.Context) {
 	var person DTOPerson
 	err := c.BindJSON(&person)
 	if err != nil {
-		c.JSON(400, err)
+		c.JSON(400, err.Error())
 		return
 	}
 
@@ -541,7 +541,7 @@ func putDTOPerson(c *gin.Context) {
 		myUuid, parseErr := uuid.Parse(person.UUID.String())
 
 		if parseErr != nil {
-			c.JSON(400, parseErr)
+			c.JSON(400, parseErr.Error())
 			return
 		}
 
@@ -656,7 +656,7 @@ func getDTOFederation(c *gin.Context) {
 			c.JSON(200, federation)
 		}
 	} else {
-		c.JSON(400, fed_uuid)
+		c.JSON(400, "fed_uuid is not valid: "+fed_uuid)
 	}
 }
 
@@ -666,7 +666,7 @@ func putDTOFederation(c *gin.Context) {
 	var federation DTOFederation
 	err := c.BindJSON(&federation)
 	if err != nil {
-		c.JSON(400, err)
+		c.JSON(400, err.Error())
 		return
 	}
 
@@ -679,7 +679,7 @@ func putDTOFederation(c *gin.Context) {
 		myUuid, parseErr := uuid.Parse(federation.UUID.String())
 
 		if parseErr != nil {
-			c.JSON(400, parseErr)
+			c.JSON(400, parseErr.Error())
 			return
 		}
 
@@ -777,7 +777,7 @@ func getDTOClub(c *gin.Context) {
 		c.JSON(200, club)
 
 	} else {
-		c.JSON(400, club_uuid)
+		c.JSON(400, "club_uuid is not valid: "+club_uuid)
 	}
 }
 
@@ -786,7 +786,7 @@ func putDTOClub(c *gin.Context) {
 	var club DTOClub
 	err := c.BindJSON(&club)
 	if err != nil {
-		c.JSON(400, err)
+		c.JSON(400, err.Error())
 		return
 	}
 
@@ -799,7 +799,7 @@ func putDTOClub(c *gin.Context) {
 		myUuid, parseErr := uuid.Parse(club.UUID.String())
 
 		if parseErr != nil {
-			c.JSON(400, parseErr)
+			c.JSON(400, parseErr.Error())
 			return
 		}
 
@@ -891,7 +891,7 @@ func getDTOAddress(c *gin.Context) {
 
 		rows, err := db.Query(sqlQuerySelect)
 		if err != nil {
-			c.JSON(400, err)
+			c.JSON(400, err.Error())
 			return
 		}
 		defer rows.Close()
@@ -961,8 +961,6 @@ func getDTOAddress(c *gin.Context) {
 	}
 }
 
-// TODO convert all error c.JSON(400, parseErr) to c.JSON(400, parseErr.Error())
-
 func updateAdrTableWithValue(addrValue string, id_address int, id_art int, c *gin.Context) {
 	var sqlUpdateQuery = `
 	UPDATE adr set 
@@ -982,7 +980,7 @@ func putDTOAddress(c *gin.Context) {
 
 	err := c.BindJSON(&addressOfClub)
 	if err != nil {
-		c.JSON(400, err)
+		c.JSON(400, err.Error())
 		return
 	}
 
@@ -1175,7 +1173,7 @@ func putDTOClubMember(c *gin.Context) {
 		myUuid, parseErr := uuid.Parse(clubmember.UUID.String())
 
 		if parseErr != nil {
-			c.JSON(400, parseErr)
+			c.JSON(400, parseErr.Error())
 			return
 		}
 
@@ -1350,7 +1348,7 @@ func putDTOClubOfficial(c *gin.Context) {
 
 	err := c.BindJSON(&clubofficial)
 	if err != nil {
-		c.JSON(400, err)
+		c.JSON(400, err.Error())
 		return
 	}
 
@@ -1363,7 +1361,7 @@ func putDTOClubOfficial(c *gin.Context) {
 		myUuid, parseErr := uuid.Parse(clubofficial.UUID.String())
 
 		if parseErr != nil {
-			c.JSON(400, parseErr)
+			c.JSON(400, parseErr.Error())
 			return
 		}
 
