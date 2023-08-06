@@ -553,7 +553,7 @@ func putDTOPerson(c *gin.Context) {
 		var count string
 		var sqlSelectQuery string = `select count(*) from person where uuid = "` + myUuid.String() + `"`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
-		fmt.Printf(sqlSelectQuery)
+		log.Info(sqlSelectQuery)
 
 		if errDBExec != nil {
 			c.JSON(500, err.Error())
@@ -591,7 +591,7 @@ func putDTOPerson(c *gin.Context) {
 					`",` + person.FIDE_Id +
 					`)
 				`
-				println(sqlInsertQuery)
+				log.Info(sqlInsertQuery)
 				// TODO: missing columns for table person at insert: pkz, geburtsort, adress, gleichstellung, verstorben, etc. see:
 				// select * from person where uuid = "aabe8313-f269-11ed-927b-005056054f4e";
 
@@ -617,7 +617,7 @@ func putDTOPerson(c *gin.Context) {
 						idfide = ` + person.FIDE_Id + `
 					WHERE uuid = "` + person.UUID.String() + `"
 				`
-				println(sqlUpdateQuery)
+				log.Infoln(sqlUpdateQuery)
 
 				_, err4 := db.Exec(sqlUpdateQuery)
 				if err4 != nil {
@@ -691,7 +691,7 @@ func putDTOFederation(c *gin.Context) {
 		var count string
 		var sqlSelectQuery string = `select count(*) from organisation where uuid = "` + myUuid.String() + `"`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
-		fmt.Printf(sqlSelectQuery)
+		log.Info(sqlSelectQuery)
 
 		if errDBExec != nil {
 			c.JSON(500, err.Error())
@@ -708,7 +708,7 @@ func putDTOFederation(c *gin.Context) {
 					`", "` + federation.Name +
 					`", "` + federation.Fedration_NR + `")
 				`
-				println(sqlInsertQuery)
+				log.Infoln(sqlInsertQuery)
 
 				_, err3 := db.Exec(sqlInsertQuery)
 
@@ -725,7 +725,7 @@ func putDTOFederation(c *gin.Context) {
 						vkz = "` + federation.Fedration_NR + `"
 					WHERE uuid = "` + federation.UUID.String() + `"
 				`
-				println(sqlUpdateQuery)
+				log.Infoln(sqlUpdateQuery)
 
 				_, err4 := db.Exec(sqlUpdateQuery)
 				if err4 != nil {
@@ -811,7 +811,7 @@ func putDTOClub(c *gin.Context) {
 		var count string
 		var sqlSelectQuery string = `select count(*) from organisation where uuid = "` + myUuid.String() + `"`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
-		fmt.Printf(sqlSelectQuery)
+		log.Info(sqlSelectQuery)
 
 		if errDBExec != nil {
 			c.JSON(500, err.Error())
@@ -828,7 +828,7 @@ func putDTOClub(c *gin.Context) {
 					`", "` + club.Name +
 					`", "` + club.Club_NR + `")
 				`
-				println(sqlInsertQuery)
+				log.Infoln(sqlInsertQuery)
 
 				_, err3 := db.Exec(sqlInsertQuery)
 
@@ -845,7 +845,7 @@ func putDTOClub(c *gin.Context) {
 						vkz = "` + club.Club_NR + `"
 					WHERE uuid = "` + club.UUID.String() + `"
 				`
-				println(sqlUpdateQuery)
+				log.Infoln(sqlUpdateQuery)
 
 				_, err4 := db.Exec(sqlUpdateQuery)
 				if err4 != nil {
@@ -887,7 +887,7 @@ func getDTOAddress(c *gin.Context) {
 				adr_art.id = adr.id_art AND
 				adressen.uuid = "` + addr_uuid + "\""
 
-		fmt.Println(sqlQuerySelect)
+		log.Infoln(sqlQuerySelect)
 
 		rows, err := db.Query(sqlQuerySelect)
 		if err != nil {
@@ -967,7 +967,7 @@ func updateAdrTableWithValue(addrValue string, id_address int, id_art int, c *gi
 		wert = "` + addrValue + `"
 	WHERE id_adressen = ` + strconv.Itoa(id_address) + ` AND
 		id_art = ` + strconv.Itoa(id_art)
-	println(sqlUpdateQuery)
+	log.Infoln(sqlUpdateQuery)
 	_, err := db.Exec(sqlUpdateQuery)
 	if err != nil {
 		c.JSON(400, err.Error())
@@ -995,7 +995,7 @@ func putDTOAddress(c *gin.Context) {
 		var count string
 		var sqlSelectQuery string = `select count(*) from adressen where uuid = "` + myUuid.String() + `"`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
-		fmt.Printf(sqlSelectQuery)
+		log.Info(sqlSelectQuery)
 
 		if errDBExec != nil {
 			c.JSON(500, err.Error())
@@ -1010,7 +1010,7 @@ func putDTOAddress(c *gin.Context) {
 						uuid)
 					VALUES ("` + addressOfClub.UUID.String() + `")
 				`
-				println(sqlInsertQuery)
+				log.Infoln(sqlInsertQuery)
 
 				_, err3 := db.Exec(sqlInsertQuery)
 
@@ -1077,7 +1077,7 @@ func getDTOClubMember(c *gin.Context) {
 			WHERE mitgliedschaft.organisation = organisation.id AND 
 				mitgliedschaft.person = person.id AND
 				mitgliedschaft.uuid = "` + clubmem_uuid + `"`
-		fmt.Println(sqlSelectQuery)
+		log.Infoln(sqlSelectQuery)
 
 		var memberFrom string
 		var memberUntil string
@@ -1092,8 +1092,8 @@ func getDTOClubMember(c *gin.Context) {
 				&clubmember.Member_Nr,
 			)
 
-		fmt.Println(memberFrom)
-		fmt.Println(memberUntil)
+		log.Infoln(memberFrom)
+		log.Infoln(memberUntil)
 		const layoutISO = "2006-01-02"
 		if strings.Compare(memberFrom, "") != 0 {
 			tMemberFrom, parseBDError := time.Parse(layoutISO, memberFrom)
@@ -1185,7 +1185,7 @@ func putDTOClubMember(c *gin.Context) {
 		var count string
 		var sqlSelectQuery string = `select count(*) from mitgliedschaft where uuid = "` + myUuid.String() + `"`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
-		fmt.Printf(sqlSelectQuery)
+		log.Info(sqlSelectQuery)
 
 		if errDBExec != nil {
 			c.JSON(500, err.Error())
@@ -1213,7 +1213,7 @@ func putDTOClubMember(c *gin.Context) {
 					`", "` + untilStr +
 					`", ` + strconv.Itoa(clubmember.Member_Nr) + `)
 				`
-				println(sqlInsertQuery)
+				log.Infoln(sqlInsertQuery)
 
 				_, err3 := db.Exec(sqlInsertQuery)
 
@@ -1233,7 +1233,7 @@ func putDTOClubMember(c *gin.Context) {
 						spielernummer = ` + strconv.Itoa(clubmember.Member_Nr) + `
 					WHERE uuid = "` + clubmember.UUID.String() + `"
 				`
-				println(sqlUpdateQuery)
+				log.Infoln(sqlUpdateQuery)
 
 				_, err4 := db.Exec(sqlUpdateQuery)
 				if err4 != nil {
@@ -1279,7 +1279,7 @@ func getDTOClubOfficial(c *gin.Context) {
 			WHERE funktion.organisation = organisation.id AND 
 				funktion.person = person.id AND
 				funktion.uuid = "` + official_uuid + `"`
-		fmt.Println(sqlSelectQuery)
+		log.Infoln(sqlSelectQuery)
 
 		var tmpClubUuid string
 		var tmpPersonUuid string
@@ -1308,8 +1308,8 @@ func getDTOClubOfficial(c *gin.Context) {
 			return
 		}
 
-		fmt.Println(validFrom)
-		fmt.Println(validUntil)
+		log.Infoln(validFrom)
+		log.Infoln(validUntil)
 		const layoutISO = "2006-01-02"
 		if strings.Compare(validFrom, "") != 0 {
 			tValidFrom, parseBDError := time.Parse(layoutISO, validFrom)
@@ -1368,7 +1368,7 @@ func putDTOClubOfficial(c *gin.Context) {
 		var count string
 		var sqlSelectQuery string = `select count(*) from funktion where uuid = "` + myUuid.String() + `"`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
-		fmt.Printf(sqlSelectQuery)
+		log.Infoln(sqlSelectQuery)
 
 		if errDBExec != nil {
 			c.JSON(500, err.Error())
@@ -1405,7 +1405,7 @@ func putDTOClubOfficial(c *gin.Context) {
 					`", "` + fromStr +
 					`", "` + untilStr + `")
 				`
-				println(sqlInsertQuery)
+				log.Infoln(sqlInsertQuery)
 
 				_, err3 := db.Exec(sqlInsertQuery)
 
@@ -1425,7 +1425,7 @@ func putDTOClubOfficial(c *gin.Context) {
 						bis = "` + untilStr + `"
 					WHERE uuid = "` + clubofficial.UUID.String() + `"
 				`
-				println(sqlUpdateQuery)
+				log.Infoln(sqlUpdateQuery)
 
 				_, err4 := db.Exec(sqlUpdateQuery)
 				if err4 != nil {
