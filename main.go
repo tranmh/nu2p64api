@@ -626,8 +626,6 @@ func putDTOPerson(c *gin.Context) {
 					`)
 				`
 				log.Info(sqlInsertQuery)
-				// TODO: missing columns for table person at insert: pkz, geburtsort, adress, gleichstellung, verstorben, etc. see:
-				// select * from person where uuid = "aabe8313-f269-11ed-927b-005056054f4e";
 
 				_, err3 := db.Exec(sqlInsertQuery)
 
