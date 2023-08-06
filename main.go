@@ -184,7 +184,7 @@ type Gender int
 const (
 	Female Gender = iota
 	Male
-	Unknown
+	GenderUnknown
 )
 
 func (s Gender) String() string {
@@ -194,7 +194,7 @@ func (s Gender) String() string {
 	case Female:
 		return "female"
 	}
-	return "unknown"
+	return "gender unknown"
 }
 
 func getGender(gender string) Gender {
@@ -203,7 +203,34 @@ func getGender(gender string) Gender {
 	} else if strings.Compare(gender, "male") == 0 {
 		return Male
 	} else {
-		return Unknown
+		return GenderUnknown
+	}
+}
+
+type PlayerLicenseRequestType int
+
+const (
+	Active PlayerLicenseRequestType = iota
+	Passive
+	Club_Transfer
+	Switch
+	Delete
+	PlayerLicenseRequestTypeUnknown
+)
+
+func getPlayerLicenseRequestType(requestType string) PlayerLicenseRequestType {
+	if strings.Compare(requestType, "ACTIVE") == 0 {
+		return Active
+	} else if strings.Compare(requestType, "PASSIVE") == 0 {
+		return Passive
+	} else if strings.Compare(requestType, "CLUB_TRANSFER") == 0 {
+		return Club_Transfer
+	} else if strings.Compare(requestType, "SWITCH") == 0 {
+		return Switch
+	} else if strings.Compare(requestType, "DELETE") == 0 {
+		return Delete
+	} else {
+		return PlayerLicenseRequestTypeUnknown
 	}
 }
 
@@ -300,6 +327,19 @@ type DTORegion struct {
 	NickName           string    `json:"nickname"`
 	Pattern            string    `json:"pattern"`
 	Parent_Region_UUID uuid.UUID `json:"parent-region-uuid"`
+}
+
+type DTOPlayerLicense struct {
+	UUID              uuid.UUID                `json:"uuid"`
+	Club_UUID         uuid.UUID                `json:"club-uuid"`
+	Prev_Club_UUID    uuid.UUID                `json:"prev-club-uuid"`
+	Person_UUID       uuid.UUID                `json:"person-uuid"`
+	RequestDate       CivilTime                `json:"request-date"`
+	RequestType       PlayerLicenseRequestType `json:"request_type"`
+	LicenseValidFrom  CivilTime                `json:"license-valid-from"`
+	LicenseValidUntil CivilTime                `json:"license-valid-until"`
+	LicenseState      string                   `json:"license-state"` // ACTIVE, PASSIVE
+	MemberNr          int                      `json:"pkz"`           // PKZ
 }
 
 // -----------------------------------------------------------------------------
@@ -1344,6 +1384,18 @@ func putDTORegion(c *gin.Context) {
 	c.JSON(204, "Mivis does not support Region, so ignore and no handling of input.")
 }
 
+func getDTOPlayerLicense(c *gin.Context) {
+	c.JSON(204, "Not implemented yet")
+}
+
+func putDTOPlayerLicense(c *gin.Context) {
+	c.JSON(204, "Not implemented yet")
+}
+
+func deleteDTOPlayerLicense(c *gin.Context) {
+	c.JSON(204, "Not implemented yet")
+}
+
 func main() {
 
 	flag.StringVar(&yourMySQLdatabasepassword, "yourMySQLdatabasepassword", "NOT_SET", "your MySQL database password")
@@ -1401,6 +1453,10 @@ func main() {
 	authorized.GET("/club-officials/:official_uuid", getDTOClubOfficial)
 	authorized.PUT("/club-officials/:official_uuid", putDTOClubOfficial)
 	authorized.DELETE("/club-officials/:official_uuid", deleteDTOClubOfficial)
+
+	authorized.GET("/player-licences/:official_uuid", getDTOPlayerLicense)
+	authorized.PUT("/player-licences/:official_uuid", putDTOPlayerLicense)
+	authorized.DELETE("/player-licences/:official_uuid", deleteDTOPlayerLicense)
 
 	router.Run(":3030")
 }
