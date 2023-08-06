@@ -15,7 +15,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -47,18 +46,26 @@ func registerLoginUser(c *gin.Context) {
 
 }
 
+func verifyPassword(username string, password string) bool {
+	envFile, _ := godotenv.Read(".env")
+
+	if (strings.Compare(username, envFile["JWT_USERNAME"]) == 0) &&
+		(strings.Compare(password, envFile["JWT_PASSWORD"]) == 0) {
+		return true
+	} else {
+		return false
+	}
+}
+
 func loginCheck(username string, password string) (string, error) {
 
 	var err error
 
-	// err = VerifyPassword(password, u.Password) // TODO
-
-	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		return "", err
+	if !verifyPassword(username, password) {
+		return "", errors.New("username or password is incorrect.")
 	}
 
-	// token, err := GenerateToken(u.ID) // TODO
-	token, err := GenerateToken(1) // TODO
+	token, err := GenerateToken(1) // TODO, only one user with one user id for now
 
 	if err != nil {
 		return "", err
