@@ -5,13 +5,17 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -21,8 +25,131 @@ var (
 	basicAuthPassword         string
 )
 
-// https://romangaranin.net/posts/2021-02-19-json-time-and-golang/
+// -----------------------------------------------------------------------------
+// https://seefnasrul.medium.com/create-your-first-go-rest-api-with-jwt-authentication-in-gin-framework-dbe5bda72817
 
+type LoginUser struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// for now we do not do anything yet with registering user
+func registerLoginUser(c *gin.Context) {
+
+	var input LoginUser
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "validated!"})
+
+}
+
+func loginCheck(username string, password string) (string, error) {
+
+	var err error
+
+	// err = VerifyPassword(password, u.Password) // TODO
+
+	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
+		return "", err
+	}
+
+	// token, err := GenerateToken(u.ID) // TODO
+	token, err := GenerateToken(1) // TODO
+
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+
+}
+
+func GenerateToken(user_id uint) (string, error) {
+
+	envFile, _ := godotenv.Read(".env")
+
+	token_lifespan, err := strconv.Atoi(envFile["TOKEN_HOUR_LIFESPAN"])
+
+	if err != nil {
+		return "", err
+	}
+
+	claims := jwt.MapClaims{}
+	claims["authorized"] = true
+	claims["user_id"] = user_id
+	claims["exp"] = time.Now().Add(time.Hour * time.Duration(token_lifespan)).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString([]byte(envFile["API_SECRET"]))
+}
+
+func tokenValid(c *gin.Context) error {
+
+	envFile, _ := godotenv.Read(".env")
+
+	tokenString := extractToken(c)
+	_, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(envFile["API_SECRET"]), nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func extractToken(c *gin.Context) string {
+	token := c.Query("token")
+	if token != "" {
+		return token
+	}
+	bearerToken := c.Request.Header.Get("Authorization")
+	if len(strings.Split(bearerToken, " ")) == 2 {
+		return strings.Split(bearerToken, " ")[1]
+	}
+	return ""
+}
+
+func loginUser(c *gin.Context) {
+
+	var input LoginUser
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := loginCheck(input.Username, input.Password)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "username or password is incorrect."})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
+
+}
+
+func jwtAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		err := tokenValid(c)
+		if err != nil {
+			c.String(http.StatusUnauthorized, "Unauthorized")
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
+// https://romangaranin.net/posts/2021-02-19-json-time-and-golang/
+// -----------------------------------------------------------------------------
 type CivilTime time.Time
 
 func (c *CivilTime) UnmarshalJSON(b []byte) error {
@@ -42,6 +169,8 @@ func (c *CivilTime) UnmarshalJSON(b []byte) error {
 func (c CivilTime) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + time.Time(c).Format("2006-01-02") + `"`), nil
 }
+
+// -----------------------------------------------------------------------------
 
 type Gender int
 
@@ -70,6 +199,8 @@ func getGender(gender string) Gender {
 		return Unknown
 	}
 }
+
+// -----------------------------------------------------------------------------
 
 type DTOAddress struct {
 	UUID         uuid.UUID `json:"uuid"`
@@ -163,6 +294,8 @@ type DTORegion struct {
 	Pattern            string    `json:"pattern"`
 	Parent_Region_UUID uuid.UUID `json:"parent-region-uuid"`
 }
+
+// -----------------------------------------------------------------------------
 
 func isValidUUID(u string) bool {
 	_, err := uuid.Parse(u)
@@ -1222,9 +1355,20 @@ func main() {
 
 	router := gin.Default()
 
-	authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
-		basicAuthUsername: basicAuthPassword,
-	}))
+	public := router.Group("/public")
+
+	public.POST("/register", registerLoginUser)
+	public.POST("/login", loginUser)
+
+	/*
+		authorized := router.Group("/api", gin.BasicAuth(gin.Accounts{
+			basicAuthUsername: basicAuthPassword,
+		}))
+	*/
+
+	authorized := router.Group("/api")
+
+	authorized.Use(jwtAuthMiddleware())
 
 	authorized.PUT("/regions/:reg_uuid", putDTORegion)
 
