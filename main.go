@@ -87,7 +87,7 @@ func initLog() {
 	}
 
 	log.SetLevel(logLevel)
-	log.SetFormatter(&log.JSONFormatter{})
+	// log.SetFormatter(&log.JSONFormatter{})
 }
 
 // -----------------------------------------------------------------------------
@@ -868,16 +868,47 @@ func deleteDTOClub(c *gin.Context) {
 	deleteDTOGeneric(c, club_uuid, deleteSQLStr)
 }
 
-// TODO, what happens to address of persons? This route at the moment is for club only. Get it from Table adresse
+func isValidUUIDofTable(myUuid string, tableName string) bool {
+	if !isValidUUID(myUuid) {
+		return false
+	}
+
+	var count string
+	var sqlQuerySelect = "SELECT COUNT(*) from " + tableName + " WHERE uuid like '" + myUuid + "'"
+	errDBExec := db.QueryRow(sqlQuerySelect).Scan(&count)
+	log.Info(sqlQuerySelect)
+
+	if errDBExec != nil {
+		log.Errorln(errDBExec.Error())
+		return false
+	} else {
+		if strings.Compare(count, "1") == 0 {
+			return true
+		} else {
+			return false
+		}
+	}
+}
+
 func getDTOAddress(c *gin.Context) {
+	addr_uuid := c.Param("addr_uuid")
+
+	if isValidUUIDofTable(addr_uuid, "adressen") {
+		getDTOAddressFromTableAdressen(c)
+	} else if isValidUUIDofTable(addr_uuid, "adresse") {
+		getDTOAddressFromTableAdresse(c)
+	} else {
+		c.JSON(404, "addr_uuid: "+addr_uuid+" was neither found in table adresse nor table adressen")
+	}
+}
+
+func getDTOAddressFromTableAdressen(c *gin.Context) {
 	addr_uuid := c.Param("addr_uuid")
 	var address DTOAddress
 
-	if isValidUUID(addr_uuid) {
+	address.UUID, _ = uuid.Parse(addr_uuid)
 
-		address.UUID, _ = uuid.Parse(addr_uuid)
-
-		var sqlQuerySelect = `
+	var sqlQuerySelect = `
 			SELECT 
 				ifnull(adr.wert, ''),
 				ifnull(adr_art.id, '')
@@ -887,77 +918,116 @@ func getDTOAddress(c *gin.Context) {
 				adr_art.id = adr.id_art AND
 				adressen.uuid = "` + addr_uuid + "\""
 
-		log.Infoln(sqlQuerySelect)
+	log.Infoln(sqlQuerySelect)
 
-		rows, err := db.Query(sqlQuerySelect)
+	rows, err := db.Query(sqlQuerySelect)
+	if err != nil {
+		c.JSON(400, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	var addrValue string
+	var addrId int
+	for rows.Next() {
+		err := rows.Scan(&addrValue, &addrId)
 		if err != nil {
-			c.JSON(400, err.Error())
+			c.JSON(401, err.Error())
 			return
 		}
-		defer rows.Close()
 
-		var addrValue string
-		var addrId int
-		for rows.Next() {
-			err := rows.Scan(&addrValue, &addrId)
+		if addrId == 2 {
+			address.Street = addrValue
+		}
+		if addrId == 3 {
+			address.ZIP = addrValue
+		}
+		if addrId == 4 {
+			address.City = addrValue
+		}
+		if addrId == 5 {
+			address.Country = addrValue
+		}
+		if addrId == 6 {
+			address.Phone_Home = addrValue
+		}
+		if addrId == 7 {
+			address.Phone_Mobile = addrValue
+		}
+		if addrId == 8 {
+			address.Phone_Work = addrValue
+		}
+		// 9 skip fax
+		if addrId == 10 {
+			address.Email = addrValue
+		}
+		if addrId == 11 {
+			address.Email2 = addrValue
+		}
+		if addrId == 15 {
+			address.WWW = addrValue
+		}
+		if addrId == 17 {
+			address.Latitude, err = strconv.ParseFloat(addrValue, 64)
 			if err != nil {
-				c.JSON(401, err.Error())
-				return
-			}
-
-			if addrId == 2 {
-				address.Street = addrValue
-			}
-			if addrId == 3 {
-				address.ZIP = addrValue
-			}
-			if addrId == 4 {
-				address.City = addrValue
-			}
-			if addrId == 5 {
-				address.Country = addrValue
-			}
-			if addrId == 6 {
-				address.Phone_Home = addrValue
-			}
-			if addrId == 7 {
-				address.Phone_Mobile = addrValue
-			}
-			if addrId == 8 {
-				address.Phone_Work = addrValue
-			}
-			// 9 skip fax
-			if addrId == 10 {
-				address.Email = addrValue
-			}
-			if addrId == 11 {
-				address.Email2 = addrValue
-			}
-			if addrId == 15 {
-				address.WWW = addrValue
-			}
-			if addrId == 17 {
-				address.Latitude, err = strconv.ParseFloat(addrValue, 64)
-				if err != nil {
-					c.JSON(500, err)
-				}
-			}
-			if addrId == 18 {
-				address.Longitude, err = strconv.ParseFloat(addrValue, 64)
-				if err != nil {
-					c.JSON(500, err)
-				}
+				c.JSON(500, err.Error())
 			}
 		}
-		if err := rows.Err(); err != nil {
-			c.JSON(402, err)
-			return
+		if addrId == 18 {
+			address.Longitude, err = strconv.ParseFloat(addrValue, 64)
+			if err != nil {
+				c.JSON(500, err.Error())
+			}
 		}
+	}
+	if err := rows.Err(); err != nil {
+		c.JSON(402, err)
+		return
+	}
 
-		c.JSON(200, address)
+	c.JSON(200, address)
+}
 
+func getDTOAddressFromTableAdresse(c *gin.Context) {
+	addr_uuid := c.Param("addr_uuid")
+	var address DTOAddress
+
+	myUuid, _ := uuid.Parse(addr_uuid)
+	address.UUID = myUuid
+
+	var sqlSelectQuery string = `
+	SELECT
+		ifnull(land.bezeichnung, '') as land,
+		ifnull(adresse.plz, '') as plz,
+		ifnull(adresse.ort, '') as ort,
+		ifnull(adresse.strasse, '') as strasse,
+		ifnull(adresse.tel1, '') as tel1,
+		ifnull(adresse.tel2, '') as tel2,
+		ifnull(adresse.tel3, '') as tel3,
+		ifnull(adresse.email1, '') as email1,
+		ifnull(adresse.email2, '') as email2
+	FROM adresse, land
+	WHERE adresse.land = land.id AND uuid like '` + addr_uuid + `'
+	`
+	log.Infoln(sqlSelectQuery)
+
+	err := db.QueryRow(sqlSelectQuery).
+		Scan(
+			&address.Country,
+			&address.ZIP,
+			&address.City,
+			&address.Street,
+			&address.Phone_Home,
+			&address.Phone_Work,
+			&address.Phone_Mobile,
+			&address.Email,
+			&address.Email2,
+		)
+
+	if err != nil {
+		c.JSON(500, err.Error())
 	} else {
-		c.JSON(403, addr_uuid)
+		c.JSON(200, address)
 	}
 }
 
@@ -976,6 +1046,20 @@ func updateAdrTableWithValue(addrValue string, id_address int, id_art int, c *gi
 
 func putDTOAddress(c *gin.Context) {
 	addr_uuid := c.Param("addr_uuid")
+
+	// update or insert?
+	// table adresse or adressen?
+	if isValidUUIDofTable(addr_uuid, "adressen") {
+		updateDTOAddressOnTableAdressen(c)
+	} else if isValidUUIDofTable(addr_uuid, "adresse") {
+		updateDTOAddressOnTableAdresse(c)
+	} else {
+		insertDTOAddressIntoTableAdresse(c) // TODO: no support of inserting to table adressen yet!
+	}
+}
+
+func updateDTOAddressOnTableAdressen(c *gin.Context) {
+	addr_uuid := c.Param("addr_uuid")
 	var addressOfClub DTOAddress
 
 	err := c.BindJSON(&addressOfClub)
@@ -989,67 +1073,151 @@ func putDTOAddress(c *gin.Context) {
 		return
 	}
 
-	if isValidUUID(addressOfClub.UUID.String()) {
-		myUuid, _ := uuid.Parse(addressOfClub.UUID.String())
+	var tmpIdAddress, _ = getIDFromUUID("adressen", addressOfClub.UUID)
 
-		var count string
-		var sqlSelectQuery string = `select count(*) from adressen where uuid = "` + myUuid.String() + `"`
-		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
-		log.Info(sqlSelectQuery)
+	updateAdrTableWithValue(addressOfClub.Street, tmpIdAddress, 2, c)
+	updateAdrTableWithValue(addressOfClub.ZIP, tmpIdAddress, 3, c)
+	updateAdrTableWithValue(addressOfClub.City, tmpIdAddress, 4, c)
+	updateAdrTableWithValue(addressOfClub.Country, tmpIdAddress, 5, c)
+	updateAdrTableWithValue(addressOfClub.Phone_Home, tmpIdAddress, 6, c)
+	updateAdrTableWithValue(addressOfClub.Phone_Mobile, tmpIdAddress, 7, c)
+	updateAdrTableWithValue(addressOfClub.Phone_Work, tmpIdAddress, 8, c)
+	updateAdrTableWithValue(addressOfClub.Email, tmpIdAddress, 10, c)
+	updateAdrTableWithValue(addressOfClub.Email2, tmpIdAddress, 11, c)
+	updateAdrTableWithValue(addressOfClub.WWW, tmpIdAddress, 15, c)
+	updateAdrTableWithValue(fmt.Sprintf("%v", addressOfClub.Latitude), tmpIdAddress, 17, c)
+	updateAdrTableWithValue(fmt.Sprintf("%v", addressOfClub.Longitude), tmpIdAddress, 18, c)
 
-		if errDBExec != nil {
-			c.JSON(500, err.Error())
-		} else {
+	c.JSON(200, addressOfClub)
+}
 
-			if strings.Compare(count, "0") == 0 { // insert
+func getCountryIdByNameAKABezeichnung(countryNameAKABezeichnung string) (result int, err error) {
+	var selectQueryStr = "SELECT id FROM land where bezeichnung like '" + countryNameAKABezeichnung + "'"
+	var tmpId int
+	rErr := db.QueryRow(selectQueryStr).Scan(&tmpId)
+	return tmpId, rErr
+}
 
-				// TODO: to whome does this address belongs to in case of insert?
+func updateDTOAddressOnTableAdresse(c *gin.Context) {
+	addr_uuid := c.Param("addr_uuid")
+	var addressOfPerson DTOAddress
 
-				var sqlInsertQuery string = `
-					FIXME  to whome does this address belongs to in case of insert INSERT INTO adressen (
-						uuid)
-					VALUES ("` + addressOfClub.UUID.String() + `")
-				`
-				log.Infoln(sqlInsertQuery)
+	err := c.BindJSON(&addressOfPerson)
+	if err != nil {
+		c.JSON(400, err.Error())
+		return
+	}
 
-				_, err3 := db.Exec(sqlInsertQuery)
+	if strings.Compare(addr_uuid, addressOfPerson.UUID.String()) != 0 {
+		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fits: "+addr_uuid+" vs "+addressOfPerson.UUID.String()))
+		return
+	}
 
-				if err3 != nil {
-					c.JSON(400, err3.Error())
-				} else {
-					c.JSON(200, addressOfClub)
-				}
-			} else if strings.Compare(count, "1") == 0 { // update
+	id, err2 := getIDFromUUID("adresse", addressOfPerson.UUID)
 
-				var tmpIdAddress, _ = getIDFromUUID("adressen", addressOfClub.UUID)
+	if err2 != nil {
+		c.JSON(400, err.Error())
+		return
+	}
 
-				updateAdrTableWithValue(addressOfClub.Street, tmpIdAddress, 2, c)
-				updateAdrTableWithValue(addressOfClub.ZIP, tmpIdAddress, 3, c)
-				updateAdrTableWithValue(addressOfClub.City, tmpIdAddress, 4, c)
-				updateAdrTableWithValue(addressOfClub.Country, tmpIdAddress, 5, c)
-				updateAdrTableWithValue(addressOfClub.Phone_Home, tmpIdAddress, 6, c)
-				updateAdrTableWithValue(addressOfClub.Phone_Mobile, tmpIdAddress, 7, c)
-				updateAdrTableWithValue(addressOfClub.Phone_Work, tmpIdAddress, 8, c)
-				updateAdrTableWithValue(addressOfClub.Email, tmpIdAddress, 10, c)
-				updateAdrTableWithValue(addressOfClub.Email2, tmpIdAddress, 11, c)
-				updateAdrTableWithValue(addressOfClub.WWW, tmpIdAddress, 15, c)
-				updateAdrTableWithValue(fmt.Sprintf("%v", addressOfClub.Latitude), tmpIdAddress, 17, c)
-				updateAdrTableWithValue(fmt.Sprintf("%v", addressOfClub.Longitude), tmpIdAddress, 18, c)
+	idOfCountry, err3 := getCountryIdByNameAKABezeichnung(addressOfPerson.Country)
 
-				c.JSON(200, addressOfClub)
-			} else {
-				c.JSON(500, errors.New("panic, more than 1 address with same uuid: "+myUuid.String()))
-			}
-		}
+	if err3 != nil {
+		c.JSON(400, err.Error())
+		return
+	}
+
+	updateSQLStr := `
+	UPDATE adresse SET 
+		land = ` + strconv.Itoa(idOfCountry) + `, 
+		plz = "` + addressOfPerson.ZIP + `", 
+		ort = "` + addressOfPerson.City + `", 
+		strasse = "` + addressOfPerson.Street + `", 
+		tel1 = "` + addressOfPerson.Phone_Home + `", 
+		tel2 = "` + addressOfPerson.Phone_Work + `", 
+		tel3 = "` + addressOfPerson.Phone_Mobile + `", 
+		email1 = "` + addressOfPerson.Email + `", 
+		email2 = "` + addressOfPerson.Email2 + `" 
+	WHERE id = ` + strconv.Itoa(id) + `
+	`
+	log.Infoln(updateSQLStr)
+
+	_, err4 := db.Exec(updateSQLStr)
+	if err4 != nil {
+		c.JSON(400, err4.Error())
 	} else {
-		c.JSON(400, errors.New("uuid is not valid"+addressOfClub.UUID.String()))
+		c.JSON(200, addressOfPerson)
+	}
+}
+
+func insertDTOAddressIntoTableAdresse(c *gin.Context) {
+	addr_uuid := c.Param("addr_uuid")
+	var addressOfPerson DTOAddress
+
+	err := c.BindJSON(&addressOfPerson)
+	if err != nil {
+		c.JSON(400, err.Error())
+		return
+	}
+
+	if strings.Compare(addr_uuid, addressOfPerson.UUID.String()) != 0 {
+		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fits: "+addr_uuid+" vs "+addressOfPerson.UUID.String()))
+		return
+	}
+
+	idOfCountry, err3 := getCountryIdByNameAKABezeichnung(addressOfPerson.Country)
+
+	if err3 != nil {
+		c.JSON(400, err.Error())
+		return
+	}
+
+	updateSQLStr := `
+	INSERT INTO adresse (
+		uuid,
+		land,
+		plz,
+		ort,
+		strasse,
+		tel1,
+		tel2,
+		tel3,
+		email1,
+		email2
+		)
+	VALUES ("` + addressOfPerson.UUID.String() +
+		`", ` + strconv.Itoa(idOfCountry) +
+		`, "` + addressOfPerson.ZIP +
+		`", "` + addressOfPerson.City +
+		`", "` + addressOfPerson.Street +
+		`", "` + addressOfPerson.Phone_Home +
+		`", "` + addressOfPerson.Phone_Work +
+		`", "` + addressOfPerson.Phone_Mobile +
+		`", "` + addressOfPerson.Email +
+		`", "` + addressOfPerson.Email2 +
+		`")`
+
+	log.Infoln(updateSQLStr)
+
+	_, err4 := db.Exec(updateSQLStr)
+	if err4 != nil {
+		c.JSON(400, err4.Error())
+	} else {
+		c.JSON(200, addressOfPerson)
 	}
 }
 
 func deleteDTOAddress(c *gin.Context) {
-	address_uuid := c.Param("addr_uuid")
-	deleteSQLStr := "delete from adressen where uuid = ?"
-	deleteDTOGeneric(c, address_uuid, deleteSQLStr)
+	addr_uuid := c.Param("addr_uuid")
+	if isValidUUIDofTable(addr_uuid, "adressen") {
+		deleteSQLStr := "delete from adressen where uuid = ?"
+		deleteDTOGeneric(c, addr_uuid, deleteSQLStr)
+	} else if isValidUUIDofTable(addr_uuid, "adresse") {
+		deleteSQLStr := "delete from adresse where uuid = ?"
+		deleteDTOGeneric(c, addr_uuid, deleteSQLStr)
+	} else {
+		c.JSON(404, "addr_uuid: "+addr_uuid+" was neither found in table adresse nor table adressen")
+	}
 }
 
 // table person and table mitgliedschaft
