@@ -16,7 +16,7 @@ Das API versendet die Datenobjekte in zwei unterschiedlichen Umfängen bzw Daten
 
 Für _Vereine_ und _Personen_ gibt es jeweils zwei Schemas, ein public und ein darauf aufbauendes protected Schema. Die protected Schemata enden mit dem Zeichen "\_" gefolgt von der extension ".schema.json". _DSBPersonDTO.schema.json_ ist also das Schema des DTOs, das allen endpoints zugesendet wird, _DSBPersonDTO\_.schema.json_ das Schema der Objekte, die nur an die regional autorisierten endpoints zugesendet werden. Im zweiten Fall wird auf das Zustellen des public DTOs verzichtet, da dieser Teil des protected DTOs ist.
 
-Adressen und Vereinsfunktionen werden ausschließlich als protected DTOs an die regional autorisierten endpoints gesendet. Für dieses DTOs gibt es daher nur das protected Schema.
+Adressen, Vereinsfunktionen und Spielgenehmigungen werden ausschließlich als protected DTOs an die regional autorisierten endpoints gesendet. Für dieses DTOs gibt es daher nur das protected Schema.
 
 Regionen, Verbände und Vereinsmitgliedschaften werden nur als public DTO versendet.  Für dieses DTOs gibt es daher nur das public Schema.
 
@@ -38,4 +38,5 @@ Ist also zB ein Spieler Mitglied in zwei Vereinen in zwei unterschiedlichen Land
 - DELETE …/club-members/{clubmem-uuid}
 - PUT …/club-officials/{official-uuid}, body: DSBClubOfficialDTO_
 - DELETE …/club-officials/{official-uuid}
- 
+- PUT …/player-licences/{licence-uuid} body: DSBPlayerLicenceDTO_
+- DELETE …/player-licences/{licence-uuid}

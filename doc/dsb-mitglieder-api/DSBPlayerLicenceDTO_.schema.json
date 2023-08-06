@@ -1,0 +1,66 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema#",
+    "title": "DSBPlayerLicenceDTO",
+    "description": "Spielberechtigungshistorie, die an REGIONAL AUTORISIERTE endpoints geliefert werden.",
+    "type": "object",
+    "$comment": "protected properties",
+    "properties": {
+        "uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "club-uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+	"prev-club-uuid": {
+	    "$comment": "prev-club-uuid will be set in case of transfer requests",
+            "type": "string",
+            "format": "uuid"
+        },
+        "person-uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+	"request-date": {
+	    "type": "string",
+            "format": "date-time"	
+	},
+	"request_type": {
+	    "enum": [
+                "ACTIVE",
+		"PASSIVE",
+                "CLULB_TRANSFER",
+		"SWITCH",
+		"DELETE"
+            ]	
+	},
+        "licence-valid-from": {
+            "type": "string",
+            "format": "date"
+        },
+        "licence-valid-until": {
+            "type": "string",
+            "format": "date"
+        },
+        "licence-state": {
+            "enum": [
+                "ACTIVE",
+                "PASSIVE"
+            ]
+        },
+        "member-nr": {
+            "type": "number",
+            "$comment": "= PKZ"
+        }
+    },
+    "required": [
+        "uuid",
+        "club-uuid",
+        "person-uuid",
+	"request-date",
+	"licence-valid-from",
+	"licence-state",
+	"member-nr"
+    ]
+}
