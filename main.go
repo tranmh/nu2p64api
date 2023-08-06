@@ -323,19 +323,19 @@ type DTOAddress struct {
 type DTOClub struct {
 	UUID                        uuid.UUID   `json:"uuid"`
 	Federation_UUID             uuid.UUID   `json:"federation-uuid"`
-	Region_UUID                 uuid.UUID   `json:"region-uuid"`
+	Region_UUID                 uuid.UUID   `json:"region-uuid"` // TODO: region-uuid is not in use in portal64, but we use verband, unterverband, bezirk, verein.
 	Club_NR                     string      `json:"club-nr"`
 	Name                        string      `json:"name"`
 	Entry_Date                  CivilTime   `json:"entry-date"`
-	Contact_Address_UUID        uuid.UUID   `json:"contact-address-uuid"`
-	Sport_Address_UUIDs         []uuid.UUID `json:"sport-address-uuids"`
-	Register_Of_Associations_Nr string      `json:"register-of-associations-nr"`
-	Club_Type                   string      `json:"club-type"`
-	Bank_Account_Owner          string      `json:"bank-account-owner"`
-	Bank_Account_Bank           string      `json:"bank-account-bank"`
-	Bank_Account_BIC            string      `json:"bank-account-big"`
-	Bank_Account_IBAN           string      `json:"bank-account-iban"`
-	Direct_Debit                bool        `json:"direct-debit"`
+	Contact_Address_UUID        uuid.UUID   `json:"contact-address-uuid"`        // table adresse
+	Sport_Address_UUIDs         []uuid.UUID `json:"sport-address-uuids"`         // table adressen
+	Register_Of_Associations_Nr string      `json:"register-of-associations-nr"` // TODO: no column in mivis, so ignore?
+	Club_Type                   string      `json:"club-type"`                   // TODO: organisationsart or isAbteilung?
+	Bank_Account_Owner          string      `json:"bank-account-owner"`          // TODO: no column in mivis, so ignore?
+	Bank_Account_Bank           string      `json:"bank-account-bank"`           // TODO: no column in mivis, so ignore?
+	Bank_Account_BIC            string      `json:"bank-account-big"`            // TODO: no column in mivis, so ignore?
+	Bank_Account_IBAN           string      `json:"bank-account-iban"`           // TODO: no column in mivis, so ignore?
+	Direct_Debit                bool        `json:"direct-debit"`                // TODO: no column in mivis, so ignore?
 }
 
 type DTOClubMember struct {
@@ -344,7 +344,7 @@ type DTOClubMember struct {
 	Person_UUID         uuid.UUID `json:"person-uuid"`
 	Member_From         CivilTime `json:"member-from"`
 	Member_Until        CivilTime `json:"member-until"`
-	License_State       string    `json:"licence-state"` // ACTIVE, PASSIVE, NO_LICENSE
+	License_State       string    `json:"licence-state"` // ACTIVE, PASSIVE, NO_LICENSE // TODO
 	License_Valid_From  CivilTime `json:"license-valid-from"`
 	License_Valid_Until CivilTime `json:"license-valid-until"`
 	Member_Nr           int       `json:"member-nr"`
@@ -377,12 +377,12 @@ type DTOPerson struct {
 	AddressUUID   uuid.UUID `json:"address-uuid"`
 	BirthDate     CivilTime `json:"birthdate"`
 	BirthPlace    string    `json:"birthplace"`
-	BirthName     string    `json:"birthname"`
+	BirthName     string    `json:"birthname"` // TODO: no column in Mivis, so ignore
 	Dead          int       `json:"dead"`
 	Nation        string    `json:"nation"`
 	Privacy_State string    `json:"privacy-state"`
 	Remarks       string    `json:"remarks"`
-	FIDE_Title    string    `json:"fide-title"`
+	FIDE_Title    string    `json:"fide-title"` // TODO: no column in Mivis, so ignore
 	FIDE_Nation   string    `json:"fide-nation"`
 	FIDE_Id       string    `json:"fide-id"`
 }
@@ -405,7 +405,7 @@ type DTOPlayerLicense struct {
 	LicenseValidFrom  CivilTime                `json:"license-valid-from"`
 	LicenseValidUntil CivilTime                `json:"license-valid-until"`
 	LicenseState      string                   `json:"license-state"` // ACTIVE, PASSIVE
-	MemberNr          int                      `json:"pkz"`           // PKZ
+	MemberNr          int                      `json:"member-nr"`     // PKZ
 }
 
 // -----------------------------------------------------------------------------
@@ -419,25 +419,37 @@ func isValidUUID(u string) bool {
 	return err == nil
 }
 
+func parseStringToCivilTime(input string) (CivilTime, error) {
+	const layoutISO = "2006-01-02"
+	t, parseError := time.Parse(layoutISO, input)
+	return CivilTime(t), parseError
+}
+
 // select
 func getDTOPerson(c *gin.Context) {
 	uuidParam := c.Param("pers_uuid")
 
 	var person DTOPerson
-	var tmpBirthDay string
+	// var tmpBirthDay string
 
 	if isValidUUID(uuidParam) {
 		myUuid, _ := uuid.Parse(uuidParam)
 		person.UUID = myUuid
+		var tmpAdresseID int
+		var tmpBirthDate string
 
 		sqlSelectQuery := `
 		select ifnull(person.name, ''), 
 				ifnull(person.vorname, ''), 
 				ifnull(titel.bezeichnung, ''), 
 				ifnull(person.geschlecht, ''), 
+				ifnull(person.adress, ''), 
 				ifnull(person.geburtsdatum, ''), 
+				ifnull(person.geburtsort, ''), 
+				ifnull(person.verstorben, ''), 
 				ifnull(person.nation, ''), 
 				ifnull(person.datenschutz, ''), 
+				ifnull(person.bemerkung, ''), 
 				ifnull(person.nationfide, ''), 
 				ifnull(person.idfide, '') 
 		from person, titel 
@@ -450,9 +462,13 @@ func getDTOPerson(c *gin.Context) {
 				&person.LastName,
 				&person.Title,
 				&person.Gender,
-				&tmpBirthDay,
+				&tmpAdresseID,
+				&tmpBirthDate,
+				&person.BirthPlace,
+				&person.Dead,
 				&person.Nation,
 				&person.Privacy_State, // TODO: NULL, 0 or 1, 1 means accepted?
+				&person.Remarks,
 				// we do not have FIDE_Title, so ignore
 				&person.FIDE_Nation,
 				&person.FIDE_Id,
@@ -466,12 +482,18 @@ func getDTOPerson(c *gin.Context) {
 			c.JSON(500, errors.New("neither female=0 nor male=1 - broken data with gender aka person.geschlecht column? gender:"+person.Gender))
 		}
 
-		const layoutISO = "2006-01-02"
-		t, parseBDError := time.Parse(layoutISO, tmpBirthDay)
+		var parseBDError error
+		person.BirthDate, parseBDError = parseStringToCivilTime(tmpBirthDate)
 		if parseBDError != nil {
 			c.JSON(500, parseBDError.Error())
-		} else {
-			person.BirthDate = CivilTime(t)
+			return
+		}
+
+		var errGetUUIDFromID error
+		person.AddressUUID, errGetUUIDFromID = getUUIDFromID("adresse", tmpAdresseID)
+
+		if errGetUUIDFromID != nil {
+			c.JSON(500, errGetUUIDFromID.Error())
 		}
 
 		if err != nil {
@@ -561,6 +583,10 @@ func putDTOPerson(c *gin.Context) {
 			var title = convertTitleToTitleID(person.Title)
 			var gender = getGender(person.Gender)
 			var birthday = strconv.Itoa(time.Time(person.BirthDate).Year()) + "-" + strconv.Itoa(int(time.Time(person.BirthDate).Month())) + "-" + strconv.Itoa(time.Time(person.BirthDate).Day())
+			var addressID, errGetIDFromUUID = getIDFromUUID("adresse", person.AddressUUID)
+			if errGetIDFromUUID != nil {
+				c.JSON(400, errGetIDFromUUID.Error()+" UUID was not found in table adresse")
+			}
 			if strings.Compare(person.FIDE_Id, "") == 0 {
 				person.FIDE_Id = "NULL"
 			}
@@ -574,9 +600,13 @@ func putDTOPerson(c *gin.Context) {
 						vorname, 
 						titel, 
 						geschlecht, 
-						geburtsdatum, 
+						adress,
+						geburtsdatum,
+						geburtsort,
+						verstorben, 
 						nation, 
-						datenschutz, 
+						datenschutz,
+						bemerkung, 
 						nationfide, 
 						idfide)
 					VALUES ("` + person.UUID.String() +
@@ -584,9 +614,13 @@ func putDTOPerson(c *gin.Context) {
 					`", "` + person.FirstName +
 					`", "` + strconv.Itoa(title) +
 					`", ` + strconv.Itoa(int(gender)) +
+					`", ` + strconv.Itoa(addressID) +
 					`, "` + birthday +
-					`", "` + person.Nation +
+					`", "` + person.BirthPlace +
+					`", ` + strconv.Itoa(person.Dead) +
+					`, "` + person.Nation +
 					`", "` + person.Privacy_State +
+					`", "` + person.Remarks +
 					`", "` + person.FIDE_Nation +
 					`",` + person.FIDE_Id +
 					`)
@@ -643,11 +677,11 @@ func getDTOFederation(c *gin.Context) {
 		myUuid, _ := uuid.Parse(fed_uuid)
 		federation.UUID = myUuid
 
-		err := db.QueryRow("SELECT name, vkz FROM `organisation` where uuid = ?", myUuid).
+		err := db.QueryRow("SELECT name, vkz, kurzname FROM `organisation` where uuid = ?", myUuid).
 			Scan(
 				&federation.Name,
 				&federation.Fedration_NR,
-				// FIXME: not match of NickName and Region_UUID?
+				&federation.NickName,
 			)
 
 		if err != nil {
@@ -703,10 +737,12 @@ func putDTOFederation(c *gin.Context) {
 					INSERT INTO organisation (
 						uuid,
 						name, 
-						vkz)
+						vkz,
+						kurzname)
 					VALUES ("` + federation.UUID.String() +
 					`", "` + federation.Name +
-					`", "` + federation.Fedration_NR + `")
+					`", "` + federation.Fedration_NR +
+					`", "` + federation.NickName + `)
 				`
 				log.Infoln(sqlInsertQuery)
 
@@ -722,7 +758,8 @@ func putDTOFederation(c *gin.Context) {
 				var sqlUpdateQuery string = `
 					UPDATE organisation set 
 						name = "` + federation.Name + `",
-						vkz = "` + federation.Fedration_NR + `"
+						vkz = "` + federation.Fedration_NR + `",
+						kurzname = "` + federation.NickName + `"
 					WHERE uuid = "` + federation.UUID.String() + `"
 				`
 				log.Infoln(sqlUpdateQuery)
@@ -742,43 +779,108 @@ func putDTOFederation(c *gin.Context) {
 	}
 }
 
+func getSportAddressUUIDs(organisationId int) ([]uuid.UUID, error) {
+
+	var result []uuid.UUID
+	var sqlSelectQuery string = `SELECT uuid FROM adressen WHERE typ = 5 AND organisation = ` + strconv.Itoa(organisationId)
+
+	rows, err := db.Query(sqlSelectQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var addrUUID string
+	for rows.Next() {
+		err := rows.Scan(&addrUUID)
+		if err != nil {
+			return nil, err
+		} else {
+			var uuid, parseErr = uuid.Parse(addrUUID)
+			if parseErr != nil {
+				return nil, parseErr
+			} else {
+				result = append(result, uuid)
+			}
+		}
+	}
+
+	return result, nil
+}
+
 // table organisation as well
 func getDTOClub(c *gin.Context) {
 	club_uuid := c.Param("club_uuid")
 	var club DTOClub
 
-	if isValidUUID(club_uuid) {
-		myUuid, _ := uuid.Parse(club_uuid)
-		club.UUID = myUuid
-
-		err := db.QueryRow("SELECT name, vkz from `organisation` where uuid = ?", myUuid).
-			Scan(
-				&club.Name,
-				&club.Club_NR,
-				// TODO: region-uuid is not in use in portal64, but we use verband, unterverband, bezirk, verein.
-			)
-
-		if err != nil {
-			c.JSON(500, err.Error())
-			return
-		}
-
-		var vkzVerband string = string(club.Club_NR[0]) + "00"
-
-		err2 := db.QueryRow("SELECT uuid from `organisation` where vkz = ?", vkzVerband).
-			Scan(
-				&club.Federation_UUID,
-			)
-		if err2 != nil {
-			c.JSON(500, err2.Error())
-			return
-		}
-
-		c.JSON(200, club)
-
-	} else {
+	if !isValidUUID(club_uuid) {
 		c.JSON(400, "club_uuid is not valid: "+club_uuid)
+		return
 	}
+
+	myUuid, _ := uuid.Parse(club_uuid)
+	club.UUID = myUuid
+
+	var tmpEntryDate string
+	var tmpAddressId int
+	var tmpOrganisationId int
+
+	var sqlSelectQuery = `
+		SELECT 
+			ifnull(organisation.vkz, ''),
+			ifnull(organisation.name, ''),
+			ifnull(organisation.grundungsdatum, ''),
+			ifnull(organisation.adress, ''),
+			ifnull(organisation.id, '')
+		FROM organisation 
+		WHERE uuid = ?
+		`
+	err := db.QueryRow(sqlSelectQuery, myUuid).
+		Scan(
+			&club.Club_NR,
+			&club.Name,
+			&tmpEntryDate,
+			&tmpAddressId,
+			&tmpOrganisationId,
+		)
+	if err != nil {
+		c.JSON(500, err.Error())
+		return
+	}
+
+	if strings.Compare(tmpEntryDate, "") != 0 {
+		var parseError error
+		club.Entry_Date, parseError = parseStringToCivilTime(tmpEntryDate)
+		if parseError != nil {
+			c.JSON(500, parseError.Error())
+			return
+		}
+	}
+
+	club.Contact_Address_UUID, err = getUUIDFromID("adresse", tmpAddressId)
+	if err != nil {
+		c.JSON(500, err.Error())
+		return
+	}
+
+	club.Sport_Address_UUIDs, err = getSportAddressUUIDs(tmpOrganisationId)
+	if err != nil {
+		c.JSON(500, err.Error())
+		return
+	}
+
+	var vkzVerband string = string(club.Club_NR[0]) + "00"
+
+	err2 := db.QueryRow("SELECT uuid from `organisation` where vkz = ?", vkzVerband).
+		Scan(
+			&club.Federation_UUID,
+		)
+	if err2 != nil {
+		c.JSON(500, err2.Error())
+		return
+	}
+
+	c.JSON(200, club)
 }
 
 func putDTOClub(c *gin.Context) {
@@ -819,6 +921,7 @@ func putDTOClub(c *gin.Context) {
 
 			if strings.Compare(count, "0") == 0 { // insert
 
+				// TODO, extend this please with missing attributes
 				var sqlInsertQuery string = `
 					INSERT INTO organisation (
 						uuid,
@@ -839,6 +942,7 @@ func putDTOClub(c *gin.Context) {
 				}
 			} else if strings.Compare(count, "1") == 0 { // update
 
+				// TODO, extend this please with missing attributes
 				var sqlUpdateQuery string = `
 					UPDATE organisation set 
 						name = "` + club.Name + `",
@@ -1262,23 +1366,19 @@ func getDTOClubMember(c *gin.Context) {
 
 		log.Infoln(memberFrom)
 		log.Infoln(memberUntil)
-		const layoutISO = "2006-01-02"
+		var parseError error
 		if strings.Compare(memberFrom, "") != 0 {
-			tMemberFrom, parseBDError := time.Parse(layoutISO, memberFrom)
-			if parseBDError != nil {
-				c.JSON(500, parseBDError.Error())
+			clubmember.Member_From, parseError = parseStringToCivilTime(memberFrom)
+			if parseError != nil {
+				c.JSON(500, parseError.Error())
 				return
-			} else {
-				clubmember.Member_From = CivilTime(tMemberFrom)
 			}
 		}
 		if strings.Compare(memberUntil, "") != 0 {
-			tMemberUntil, parseBDError2 := time.Parse(layoutISO, memberUntil)
-			if parseBDError2 != nil {
-				c.JSON(500, parseBDError2.Error())
+			clubmember.Member_Until, parseError = parseStringToCivilTime(memberUntil)
+			if parseError != nil {
+				c.JSON(500, parseError.Error())
 				return
-			} else {
-				clubmember.Member_Until = CivilTime(tMemberUntil)
 			}
 		}
 
@@ -1463,6 +1563,11 @@ func getDTOClubOfficial(c *gin.Context) {
 				&validUntil,
 			)
 
+		if err != nil {
+			c.JSON(500, err.Error())
+			return
+		}
+
 		var parseErrClubUUID error
 		clubofficial.Club_UUID, parseErrClubUUID = uuid.Parse(tmpClubUuid)
 		if parseErrClubUUID != nil {
@@ -1478,29 +1583,21 @@ func getDTOClubOfficial(c *gin.Context) {
 
 		log.Infoln(validFrom)
 		log.Infoln(validUntil)
-		const layoutISO = "2006-01-02"
+
+		var parseError error
 		if strings.Compare(validFrom, "") != 0 {
-			tValidFrom, parseBDError := time.Parse(layoutISO, validFrom)
-			if parseBDError != nil {
-				c.JSON(500, parseBDError.Error())
+			clubofficial.Valid_From, parseError = parseStringToCivilTime(validFrom)
+			if parseError != nil {
+				c.JSON(500, parseError.Error())
 				return
-			} else {
-				clubofficial.Valid_From = CivilTime(tValidFrom)
 			}
 		}
 		if strings.Compare(validUntil, "") != 0 {
-			tValidUntil, parseBDError2 := time.Parse(layoutISO, validUntil)
-			if parseBDError2 != nil {
-				c.JSON(500, parseBDError2.Error())
+			clubofficial.Valid_Until, parseError = parseStringToCivilTime(validUntil)
+			if parseError != nil {
+				c.JSON(500, parseError.Error())
 				return
-			} else {
-				clubofficial.Valid_Until = CivilTime(tValidUntil)
 			}
-		}
-
-		if err != nil {
-			c.JSON(500, err.Error())
-			return
 		}
 
 		c.JSON(200, clubofficial)
