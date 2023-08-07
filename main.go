@@ -273,6 +273,34 @@ func getGender(gender string) Gender {
 	}
 }
 
+type LicenseState int
+
+const (
+	LicenseStateUnknown LicenseState = 0
+	LicenseStateActive  LicenseState = 1
+	LicenseStatePassive LicenseState = 2
+)
+
+func LicenseStateToString(licState LicenseState) string {
+	if licState == LicenseStateActive {
+		return "ACTIVE"
+	} else if licState == LicenseStatePassive {
+		return "PASSIVE"
+	} else {
+		return "UNKNOWN"
+	}
+}
+
+func getLicenseStateFromString(licStateStr string) LicenseState {
+	if strings.Compare(licStateStr, "ACTIVE") == 0 {
+		return LicenseStateActive
+	} else if strings.Compare(licStateStr, "PASSIVE") == 0 {
+		return LicenseStatePassive
+	} else {
+		return LicenseStateUnknown
+	}
+}
+
 type PlayerLicenseRequestType int
 
 const (
@@ -330,12 +358,12 @@ type DTOClub struct {
 	Contact_Address_UUID        uuid.UUID   `json:"contact-address-uuid"`        // table adresse
 	Sport_Address_UUIDs         []uuid.UUID `json:"sport-address-uuids"`         // table adressen
 	Register_Of_Associations_Nr string      `json:"register-of-associations-nr"` // TODO: no column in mivis, so ignore?
-	Club_Type                   string      `json:"club-type"`                   // TODO: organisationsart or isAbteilung?
-	Bank_Account_Owner          string      `json:"bank-account-owner"`          // TODO: no column in mivis, so ignore?
-	Bank_Account_Bank           string      `json:"bank-account-bank"`           // TODO: no column in mivis, so ignore?
-	Bank_Account_BIC            string      `json:"bank-account-big"`            // TODO: no column in mivis, so ignore?
-	Bank_Account_IBAN           string      `json:"bank-account-iban"`           // TODO: no column in mivis, so ignore?
-	Direct_Debit                bool        `json:"direct-debit"`                // TODO: no column in mivis, so ignore?
+	Club_Type                   string      `json:"club-type"`                   // TODO: organisationsart (bezirk, verein, kreis, unterverband, verband, dsb) or isAbteilung?
+	Bank_Account_Owner          string      `json:"bank-account-owner"`          // no column in mivis, so ignore
+	Bank_Account_Bank           string      `json:"bank-account-bank"`           // no column in mivis, so ignore
+	Bank_Account_BIC            string      `json:"bank-account-big"`            // no column in mivis, so ignore
+	Bank_Account_IBAN           string      `json:"bank-account-iban"`           // no column in mivis, so ignore
+	Direct_Debit                bool        `json:"direct-debit"`                // no column in mivis, so ignore
 }
 
 type DTOClubMember struct {
@@ -344,7 +372,7 @@ type DTOClubMember struct {
 	Person_UUID         uuid.UUID `json:"person-uuid"`
 	Member_From         CivilTime `json:"member-from"`
 	Member_Until        CivilTime `json:"member-until"`
-	License_State       string    `json:"licence-state"` // ACTIVE, PASSIVE, NO_LICENSE // TODO
+	License_State       string    `json:"licence-state"` // ACTIVE, PASSIVE, NO_LICENSE // stat1: 1 aktiv, 2 passiv
 	License_Valid_From  CivilTime `json:"license-valid-from"`
 	License_Valid_Until CivilTime `json:"license-valid-until"`
 	Member_Nr           int       `json:"member-nr"`
@@ -380,7 +408,7 @@ type DTOPerson struct {
 	BirthName     string    `json:"birthname"` // TODO: no column in Mivis, so ignore
 	Dead          int       `json:"dead"`
 	Nation        string    `json:"nation"`
-	Privacy_State string    `json:"privacy-state"`
+	Privacy_State string    `json:"privacy-state"` // datenschutz: 1 = zugestimmt.
 	Remarks       string    `json:"remarks"`
 	FIDE_Title    string    `json:"fide-title"` // TODO: no column in Mivis, so ignore
 	FIDE_Nation   string    `json:"fide-nation"`
@@ -1324,7 +1352,6 @@ func deleteDTOAddress(c *gin.Context) {
 
 // table person and table mitgliedschaft
 func getDTOClubMember(c *gin.Context) {
-	club_uuid := c.Param("club_uuid")
 	clubmem_uuid := c.Param("clubmem_uuid")
 	var clubmember DTOClubMember
 
@@ -1351,6 +1378,7 @@ func getDTOClubMember(c *gin.Context) {
 
 		var memberFrom string
 		var memberUntil string
+		var licenseState string
 
 		err := db.QueryRow(sqlSelectQuery).
 			Scan(
@@ -1358,7 +1386,7 @@ func getDTOClubMember(c *gin.Context) {
 				&clubmember.Person_UUID,
 				&memberFrom,
 				&memberUntil,
-				&clubmember.License_State,
+				&licenseState,
 				&clubmember.Member_Nr,
 			)
 
@@ -1380,10 +1408,12 @@ func getDTOClubMember(c *gin.Context) {
 			}
 		}
 
-		if strings.Compare(club_uuid, clubmember.Club_UUID.String()) != 0 {
-			c.JSON(400, "club_uuid as URL does not fit to the content in the database: "+club_uuid+" vs "+clubmember.Club_UUID.String())
+		myLicenseState, err := strconv.Atoi(licenseState)
+		if err != nil {
+			c.JSON(500, err.Error())
 			return
 		}
+		clubmember.License_State = LicenseStateToString(LicenseState(myLicenseState))
 
 		if err != nil {
 			c.JSON(500, err.Error())
@@ -1471,12 +1501,14 @@ func putDTOClubMember(c *gin.Context) {
 						organisation,
 						von,
 						bis,
+						stat1,
 						spielernummer)
 					VALUES ("` + clubmember.UUID.String() +
 					`", ` + strconv.Itoa(person_id) +
 					`, "` + strconv.Itoa(organisation_id) +
 					`", "` + fromStr +
 					`", "` + untilStr +
+					`", "` + strconv.Itoa(int(getLicenseStateFromString(clubmember.License_State))) +
 					`", ` + strconv.Itoa(clubmember.Member_Nr) + `)
 				`
 				log.Infoln(sqlInsertQuery)
@@ -1496,6 +1528,7 @@ func putDTOClubMember(c *gin.Context) {
 						organisation = ` + strconv.Itoa(organisation_id) + `,
 						von = "` + fromStr + `",
 						bis = "` + untilStr + `",
+						stat1 = ` + strconv.Itoa(int(getLicenseStateFromString(clubmember.License_State))) + `,
 						spielernummer = ` + strconv.Itoa(clubmember.Member_Nr) + `
 					WHERE uuid = "` + clubmember.UUID.String() + `"
 				`
