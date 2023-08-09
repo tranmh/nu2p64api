@@ -245,31 +245,31 @@ func (c CivilTime) MarshalJSON() ([]byte, error) {
 
 // -----------------------------------------------------------------------------
 
-type Gender int
+type Sex int
 
 const (
-	Female Gender = iota
+	Female Sex = iota
 	Male
-	GenderUnknown
+	SexUnknown
 )
 
-func (s Gender) String() string {
+func (s Sex) String() string {
 	switch s {
 	case Male:
 		return "male"
 	case Female:
 		return "female"
 	}
-	return "gender unknown"
+	return "sexunknown"
 }
 
-func getGender(gender string) Gender {
-	if strings.Compare(gender, "female") == 0 {
+func getSex(sex string) Sex {
+	if strings.Compare(sex, "female") == 0 {
 		return Female
-	} else if strings.Compare(gender, "male") == 0 {
+	} else if strings.Compare(sex, "male") == 0 {
 		return Male
 	} else {
-		return GenderUnknown
+		return SexUnknown
 	}
 }
 
@@ -429,7 +429,8 @@ type DTOPerson struct {
 	FirstName     string    `json:"firstname"`
 	LastName      string    `json:"lastname"`
 	Title         string    `json:"title"`
-	Gender        string    `json:"gender"`
+	Gender        string    `json:"gender"` // male, female, nonbinary; no column in mivis, so ignore
+	Sex           string    `json:"sex"`    // male, female
 	AddressUUID   uuid.UUID `json:"address-uuid"`
 	BirthDate     CivilTime `json:"birthdate"`
 	BirthPlace    string    `json:"birthplace"`
@@ -521,7 +522,7 @@ func getDTOPerson(c *gin.Context) {
 				&person.FirstName,
 				&person.LastName,
 				&person.Title,
-				&person.Gender,
+				&person.Sex,
 				&tmpAdresseID,
 				&tmpBirthDate,
 				&person.BirthPlace,
@@ -534,12 +535,12 @@ func getDTOPerson(c *gin.Context) {
 				&person.FIDE_Id,
 			)
 
-		if strings.Compare(person.Gender, "0") == 0 {
-			person.Gender = "female"
-		} else if strings.Compare(person.Gender, "1") == 0 {
-			person.Gender = "male"
+		if strings.Compare(person.Sex, "0") == 0 {
+			person.Sex = "female"
+		} else if strings.Compare(person.Sex, "1") == 0 {
+			person.Sex = "male"
 		} else {
-			c.JSON(500, errors.New("neither female=0 nor male=1 - broken data with gender aka person.geschlecht column? gender:"+person.Gender))
+			c.JSON(500, errors.New("neither female=0 nor male=1 - broken data with sex aka person.geschlecht column? sex:"+person.Sex))
 		}
 
 		var parseBDError error
@@ -641,7 +642,7 @@ func putDTOPerson(c *gin.Context) {
 			c.JSON(500, err.Error())
 		} else {
 			var title = convertTitleToTitleID(person.Title)
-			var gender = getGender(person.Gender)
+			var sex = getSex(person.Sex)
 			var birthday = strconv.Itoa(time.Time(person.BirthDate).Year()) + "-" + strconv.Itoa(int(time.Time(person.BirthDate).Month())) + "-" + strconv.Itoa(time.Time(person.BirthDate).Day())
 			var addressID, errGetIDFromUUID = getIDFromUUID("adresse", person.AddressUUID)
 			if errGetIDFromUUID != nil {
@@ -673,7 +674,7 @@ func putDTOPerson(c *gin.Context) {
 					`", "` + person.LastName +
 					`", "` + person.FirstName +
 					`", "` + strconv.Itoa(title) +
-					`", ` + strconv.Itoa(int(gender)) +
+					`", ` + strconv.Itoa(int(sex)) +
 					`", ` + strconv.Itoa(addressID) +
 					`, "` + birthday +
 					`", "` + person.BirthPlace +
@@ -701,7 +702,7 @@ func putDTOPerson(c *gin.Context) {
 						name = "` + person.LastName + `",
 						vorname = "` + person.FirstName + `",
 						titel = "` + strconv.Itoa(title) + `",
-						geschlecht = "` + strconv.Itoa(int(gender)) + `",
+						geschlecht = "` + strconv.Itoa(int(sex)) + `",
 						geburtsdatum = "` + birthday + `",
 						nation = "` + person.Nation + `",
 						datenschutz = "` + person.Privacy_State + `",
