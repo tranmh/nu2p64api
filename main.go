@@ -328,6 +328,34 @@ func getPlayerLicenseRequestType(requestType string) PlayerLicenseRequestType {
 	}
 }
 
+type IsAbteilung int
+
+const (
+	Einsparten          IsAbteilung = 0
+	Mehrsparten         IsAbteilung = 1
+	UNKNOWN_ISABTEILUNG IsAbteilung = 2
+)
+
+func IsAbteilungToClubType(ia IsAbteilung) string {
+	if ia == Einsparten {
+		return "SINGLEDEVISION"
+	} else if ia == Mehrsparten {
+		return "MULTIDIVISION"
+	} else {
+		return "UNKNOWN_CLUBTYPE"
+	}
+}
+
+func ClubTypeStringToIsAbteilung(ct string) string {
+	if strings.Compare(ct, "SINGLEDEVISION") == 0 {
+		return strconv.Itoa(int(Einsparten))
+	} else if strings.Compare(ct, "MULTIDIVISION") == 0 {
+		return strconv.Itoa(int(Mehrsparten))
+	} else {
+		return strconv.Itoa(int(UNKNOWN_ISABTEILUNG))
+	}
+}
+
 // -----------------------------------------------------------------------------
 
 type DTOAddress struct {
@@ -351,14 +379,14 @@ type DTOAddress struct {
 type DTOClub struct {
 	UUID                        uuid.UUID   `json:"uuid"`
 	Federation_UUID             uuid.UUID   `json:"federation-uuid"`
-	Region_UUID                 uuid.UUID   `json:"region-uuid"` // TODO: region-uuid is not in use in portal64, but we use verband, unterverband, bezirk, verein.
+	Region_UUID                 uuid.UUID   `json:"region-uuid"` // region-uuid is not in use in portal64, but we use verband, unterverband, bezirk, verein.
 	Club_NR                     string      `json:"club-nr"`
 	Name                        string      `json:"name"`
 	Entry_Date                  CivilTime   `json:"entry-date"`
-	Contact_Address_UUID        uuid.UUID   `json:"contact-address-uuid"`        // table adresse
-	Sport_Address_UUIDs         []uuid.UUID `json:"sport-address-uuids"`         // table adressen
-	Register_Of_Associations_Nr string      `json:"register-of-associations-nr"` // TODO: no column in mivis, so ignore?
-	Club_Type                   string      `json:"club-type"`                   // TODO: organisationsart (bezirk, verein, kreis, unterverband, verband, dsb) or isAbteilung?
+	Contact_Address_UUID        uuid.UUID   `json:"contact-address-uuid"`        // TODO table adresse
+	Sport_Address_UUIDs         []uuid.UUID `json:"sport-address-uuids"`         // TODO table adressen
+	Register_Of_Associations_Nr string      `json:"register-of-associations-nr"` // vereinsregister-Nr: no column in mivis, so ignore
+	Club_Type                   string      `json:"club-type"`                   // =isAbteilung in mivis
 	Bank_Account_Owner          string      `json:"bank-account-owner"`          // no column in mivis, so ignore
 	Bank_Account_Bank           string      `json:"bank-account-bank"`           // no column in mivis, so ignore
 	Bank_Account_BIC            string      `json:"bank-account-big"`            // no column in mivis, so ignore
@@ -451,6 +479,10 @@ func parseStringToCivilTime(input string) (CivilTime, error) {
 	const layoutISO = "2006-01-02"
 	t, parseError := time.Parse(layoutISO, input)
 	return CivilTime(t), parseError
+}
+
+func CivilTimeToString(civilTime CivilTime) string {
+	return time.Time(civilTime).Format("2006-01-02")
 }
 
 // select
@@ -850,6 +882,7 @@ func getDTOClub(c *gin.Context) {
 	var tmpEntryDate string
 	var tmpAddressId int
 	var tmpOrganisationId int
+	var tmpClubType int
 
 	var sqlSelectQuery = `
 		SELECT 
@@ -857,7 +890,8 @@ func getDTOClub(c *gin.Context) {
 			ifnull(organisation.name, ''),
 			ifnull(organisation.grundungsdatum, ''),
 			ifnull(organisation.adress, ''),
-			ifnull(organisation.id, '')
+			ifnull(organisation.id, ''),
+			ifnull(organisation.isAbteilung, '')
 		FROM organisation 
 		WHERE uuid = ?
 		`
@@ -868,6 +902,7 @@ func getDTOClub(c *gin.Context) {
 			&tmpEntryDate,
 			&tmpAddressId,
 			&tmpOrganisationId,
+			&tmpClubType,
 		)
 	if err != nil {
 		c.JSON(500, err.Error())
@@ -894,6 +929,7 @@ func getDTOClub(c *gin.Context) {
 		c.JSON(500, err.Error())
 		return
 	}
+	club.Club_Type = IsAbteilungToClubType(IsAbteilung(tmpClubType))
 
 	var vkzVerband string = string(club.Club_NR[0]) + "00"
 
@@ -952,10 +988,14 @@ func putDTOClub(c *gin.Context) {
 					INSERT INTO organisation (
 						uuid,
 						name, 
-						vkz)
+						vkz,
+						grundungsdatum,
+						isAbteilung)
 					VALUES ("` + club.UUID.String() +
 					`", "` + club.Name +
-					`", "` + club.Club_NR + `")
+					`", "` + club.Club_NR +
+					`", "` + CivilTimeToString(club.Entry_Date) +
+					`", ` + ClubTypeStringToIsAbteilung(club.Club_Type) + `)
 				`
 				log.Infoln(sqlInsertQuery)
 
@@ -970,9 +1010,11 @@ func putDTOClub(c *gin.Context) {
 
 				// TODO, extend this please with missing attributes
 				var sqlUpdateQuery string = `
-					UPDATE organisation set 
+					UPDATE organisation SET 
 						name = "` + club.Name + `",
-						vkz = "` + club.Club_NR + `"
+						vkz = "` + club.Club_NR + `",
+						grundungsdatum = "` + CivilTimeToString(club.Entry_Date) + `",
+						isAbteilung = "` + ClubTypeStringToIsAbteilung(club.Club_Type) + `"
 					WHERE uuid = "` + club.UUID.String() + `"
 				`
 				log.Infoln(sqlUpdateQuery)
@@ -1813,9 +1855,10 @@ func main() {
 	authorized.PUT("/persons/:pers_uuid", putDTOPerson)
 	authorized.DELETE("/persons/:pers_uuid", deleteDTOPerson)
 
-	authorized.GET("/club-members/:clubmem_uuid", getDTOClubMember)
-	authorized.PUT("/club-members/:clubmem_uuid", putDTOClubMember)
-	authorized.DELETE("/club-members/:clubmem_uuid", deleteDTOClubMember)
+	// obsolete, use DTOPlayerLicense instead
+	// authorized.GET("/club-members/:clubmem_uuid", getDTOClubMember)
+	// authorized.PUT("/club-members/:clubmem_uuid", putDTOClubMember)
+	// authorized.DELETE("/club-members/:clubmem_uuid", deleteDTOClubMember)
 
 	authorized.GET("/club-officials/:official_uuid", getDTOClubOfficial)
 	authorized.PUT("/club-officials/:official_uuid", putDTOClubOfficial)
