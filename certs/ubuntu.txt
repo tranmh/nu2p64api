@@ -3,3 +3,34 @@ apt-get install certbot
 sudo apt-get install python3-certbot-apache 
 sudo certbot register
 sudo certbot --apache -d test.svw.info
+
+# domain portal.test.svw.info bei strato registieren
+# domain ergebnisse.test.svw.info bei strato registieren
+# check 
+nslookup portal.test.svw.info
+nslookup ergebnisse.test.svw.info
+
+sudo certbot --apache -d portal.test.svw.info
+sudo certbot --apache -d ergebnisse.test.svw.info
+
+a2enmod headers
+mkdir -p /var/log/apache2/svw/
+systemctl restart apache2
+
+add include_path in php.ini .:/var/www/portal64/includes/:
+vi /etc/php/8.1/fpm/php.ini
+include_path = ".:/usr/share/php:/var/www/portal64/includes/"
+systemctl restart apache2
+systemctl restart php8.1-fpm.service
+
+mkdir -p /var/www/portal64/logs/svw/
+
+mysqldump -u root --skip-ssl -p portal64_svw > ~/portal64_svw_2023-08-13.sql
+scp root@portal.svw.info:/root/portal64_svw_2023-08-13.sql .
+
+mysql --skip-ssl
+create database portal64_svw;
+# assuming user portal already exists:
+GRANT ALL PRIVILEGES ON portal64_svw.* TO 'portal'@'localhost';
+# import:
+mysql -u portal -p portal64_svw < portal64_svw_2023-08-13.sql
