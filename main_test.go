@@ -52,9 +52,9 @@ func Test_GetPersonTranByUUID(t *testing.T) {
 	}
 }
 
-// Göppingen: http://anybody:s3cr3t@test.svw.info:3030/federations/123/clubs/6e358ea2-f26a-11ed-927b-005056054f4e
-// Cuong: http://anybody:s3cr3t@test.svw.info:3030/federations/123/persons/babe8313-f269-11ed-927b-005056054f4e
-// Deutscher Schachbund: http://anybody:s3cr3t@test.svw.info:3030/federations/6e25f2a5-f26a-11ed-927b-005056054f4e
+// Göppingen: https://anybody:s3cr3t@test.svw.info:3030/api/federations/6e358ea2-f26a-11ed-927b-005056054f4e
+// Cuong: https://anybody:s3cr3t@test.svw.info:3030/api/persons/babe8313-f269-11ed-927b-005056054f4e
+// Deutscher Schachbund: https://anybody:s3cr3t@test.svw.info:3030/api/federations/6e25f2a5-f26a-11ed-927b-005056054f4e
 
 func Test_loginUser(t *testing.T) {
 
