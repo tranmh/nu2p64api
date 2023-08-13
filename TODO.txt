@@ -1,0 +1,8 @@
+In this order:
+- certs, done 
+- fix phpmyadmin, since https now, done
+- apache config files für portal.test.svw.info, not done!
+- test-umgebung schauen, ob das schon läuft mit php7 vs. php8, not done!
+- generic save addresses in both tables adresse and adressen in case of insert and move later 
+- bank daten, tabelle existiert
+- neuer route für den wechseln vom spielerbetrieb wird abgelehnt, michael in klärung.
