@@ -1,0 +1,5 @@
+// https://wiki.ubuntuusers.de/certbot/
+apt-get install certbot 
+sudo apt-get install python3-certbot-apache 
+sudo certbot register
+sudo certbot --apache -d test.svw.info

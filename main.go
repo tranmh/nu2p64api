@@ -1824,20 +1824,15 @@ func main() {
 	router.Use(gin.Recovery())
 	router.Use(LoggingMiddleware())
 
-	public := router.Group("/public")
+	authorized := router.Group("/api", gin.BasicAuth(gin.Accounts{
+		basicAuthUsername: basicAuthPassword,
+	}))
 
-	public.POST("/register", registerLoginUser)
-	public.POST("/login", loginUser)
-
-	/*
-		authorized := router.Group("/api", gin.BasicAuth(gin.Accounts{
-			basicAuthUsername: basicAuthPassword,
-		}))
-	*/
-
-	authorized := router.Group("/api")
-
-	authorized.Use(jwtAuthMiddleware())
+	// public := router.Group("/public")
+	// public.POST("/register", registerLoginUser)
+	// public.POST("/login", loginUser)
+	// authorized := router.Group("/api")
+	// authorized.Use(jwtAuthMiddleware())
 
 	authorized.PUT("/regions/:reg_uuid", putDTORegion)
 
@@ -1856,18 +1851,19 @@ func main() {
 	authorized.PUT("/persons/:pers_uuid", putDTOPerson)
 	authorized.DELETE("/persons/:pers_uuid", deleteDTOPerson)
 
-	// obsolete, use DTOPlayerLicense instead
-	// authorized.GET("/club-members/:clubmem_uuid", getDTOClubMember)
-	// authorized.PUT("/club-members/:clubmem_uuid", putDTOClubMember)
-	// authorized.DELETE("/club-members/:clubmem_uuid", deleteDTOClubMember)
+	authorized.GET("/club-members/:clubmem_uuid", getDTOClubMember)
+	authorized.PUT("/club-members/:clubmem_uuid", putDTOClubMember)
+	authorized.DELETE("/club-members/:clubmem_uuid", deleteDTOClubMember)
 
 	authorized.GET("/club-officials/:official_uuid", getDTOClubOfficial)
 	authorized.PUT("/club-officials/:official_uuid", putDTOClubOfficial)
 	authorized.DELETE("/club-officials/:official_uuid", deleteDTOClubOfficial)
 
-	authorized.GET("/player-licences/:license_uuid", getDTOPlayerLicense)
-	authorized.PUT("/player-licences/:license_uuid", putDTOPlayerLicense)
-	authorized.DELETE("/player-licences/:license_uuid", deleteDTOPlayerLicense)
+	// new, may not implement
+	// authorized.GET("/player-licences/:license_uuid", getDTOPlayerLicense)
+	// authorized.PUT("/player-licences/:license_uuid", putDTOPlayerLicense)
+	// authorized.DELETE("/player-licences/:license_uuid", deleteDTOPlayerLicense)
 
-	router.Run(":3030")
+	// router.Run(":3030")
+	router.RunTLS(":3030", "/etc/letsencrypt/live/test.svw.info/cert.pem", "/etc/letsencrypt/live/test.svw.info/privkey.pem")
 }
