@@ -1,0 +1,31 @@
+
+# https://linux.how2shout.com/how-to-install-php-7-4-on-ubuntu-22-04-lts-jammy-linux/
+sudo apt install software-properties-common
+sudo add-apt-repository ppa:ondrej/php -y
+sudo apt install php7.4
+sudo apt install php7.4-{cli,common,curl,zip,gd,mysql,xml,mbstring,json,intl}
+sudo update-alternatives --config php
+
+sudo add-apt-repository ppa:ondrej/apache2 -y
+
+sudo apt-get install php7.4-fpm
+
+change 
+root@localhost:/etc/apache2/sites-available# vi info_svw_test_portal-le-ssl.conf
+from 
+SetHandler "proxy:unix:/var/run/php/php8.1-fpm.sock|fcgi://localhost"
+to
+SetHandler "proxy:unix:/var/run/php/php7.4-fpm.sock|fcgi://localhost"
+
+systemctl restart php8.1-fpm.service
+systemctl enable  php8.1-fpm.service
+systemctl restart php7.4-fpm.service
+systemctl enable  php7.4-fpm.service
+systemctl restart apache2
+
+add include_path in php.ini .:/var/www/portal64/includes/:
+vi /etc/php/7.4/fpm/php.ini
+include_path = ".:/usr/share/php:/var/www/portal64/includes/"
+systemctl restart apache2
+systemctl restart php7.4-fpm.service
+
