@@ -8,7 +8,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/mail"
+	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -468,6 +471,42 @@ type DTOPerson struct {
 	FIDE_Title    string    `json:"fide-title"` // TODO: no column in Mivis, so ignore
 	FIDE_Nation   string    `json:"fide-nation"`
 	FIDE_Id       string    `json:"fide-id"`
+}
+
+func validateDTOAddress(dtoaddress DTOAddress) (bool, error) {
+	var err error
+
+	_, err = mail.ParseAddress(dtoaddress.Email)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = mail.ParseAddress(dtoaddress.Email2)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = url.ParseRequestURI(dtoaddress.WWW)
+	if err != nil {
+		return false, err
+	}
+
+	// https://www.golangprograms.com/regular-expression-to-validate-phone-number.html
+	re := regexp.MustCompile(`^(?:(?:\(?(?:00|\+)([1-4]\d\d|[1-9]\d?)\)?)?[\-\.\ \\\/]?)?((?:\(?\d{1,}\)?[\-\.\ \\\/]?){0,})(?:[\-\.\ \\\/]?(?:#|ext\.?|extension|x)[\-\.\ \\\/]?(\d+))?$`)
+
+	if !re.MatchString(dtoaddress.Phone_Mobile) {
+		return false, errors.New("dtoaddress.Phone_Mobile is not a valid phone number" + dtoaddress.Phone_Mobile)
+	}
+
+	if !re.MatchString(dtoaddress.Phone_Home) {
+		return false, errors.New("dtoaddress.Phone_Home is not a valid phone number" + dtoaddress.Phone_Home)
+	}
+
+	if !re.MatchString(dtoaddress.Phone_Work) {
+		return false, errors.New("dtoaddress.Phone_Work is not a valid phone number" + dtoaddress.Phone_Work)
+	}
+
+	return true, nil
 }
 
 type DTORegion struct {
@@ -1267,6 +1306,12 @@ func updateDTOAddressOnTableAdressen(c *gin.Context) {
 		return
 	}
 
+	_, err = validateDTOAddress(addressOfClub)
+	if err != nil {
+		c.JSON(400, err.Error())
+		return
+	}
+
 	if strings.Compare(addr_uuid, addressOfClub.UUID.String()) != 0 {
 		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fits: "+addr_uuid+" vs "+addressOfClub.UUID.String()))
 		return
@@ -1302,6 +1347,12 @@ func updateDTOAddressOnTableAdresse(c *gin.Context) {
 	var addressOfPerson DTOAddress
 
 	err := c.BindJSON(&addressOfPerson)
+	if err != nil {
+		c.JSON(400, err.Error())
+		return
+	}
+
+	_, err = validateDTOAddress(addressOfPerson)
 	if err != nil {
 		c.JSON(400, err.Error())
 		return
@@ -1354,6 +1405,12 @@ func insertDTOAddressIntoTableAdresse(c *gin.Context) {
 	var addressOfPerson DTOAddress
 
 	err := c.BindJSON(&addressOfPerson)
+	if err != nil {
+		c.JSON(400, err.Error())
+		return
+	}
+
+	_, err = validateDTOAddress(addressOfPerson)
 	if err != nil {
 		c.JSON(400, err.Error())
 		return
