@@ -232,7 +232,7 @@ func verifyTokenController() gin.HandlerFunc {
 		log.Println(reqToken)
 
 		if authHeader == "" || reqToken == authHeader {
-			c.JSON(http.StatusUnauthorized, "Authentication header not present or malformed")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Authentication header not present or malformed"})
 			return
 		}
 
