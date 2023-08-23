@@ -221,6 +221,32 @@ func jwtAuthMiddleware() gin.HandlerFunc {
 	}
 }
 
+// https://go.dev/play/p/Pn2qwpiRC4
+// -----------------------------------------------------------------------------
+func verifyTokenController() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		prefix := "Bearer "
+		authHeader := c.Request.Header.Get("Authorization")
+		reqToken := strings.TrimPrefix(authHeader, prefix)
+
+		log.Println(reqToken)
+
+		if authHeader == "" || reqToken == authHeader {
+			c.JSON(http.StatusUnauthorized, "Authentication header not present or malformed")
+			return
+		}
+
+		envFile, _ := godotenv.Read(".env")
+
+		if strings.Compare(reqToken, envFile["SECRET_TOKEN"]) != 0 {
+			log.Println(reqToken)
+			log.Println(envFile["SECRET_TOKEN"])
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Authentication token is not correct"})
+			return
+		}
+	}
+}
+
 // https://romangaranin.net/posts/2021-02-19-json-time-and-golang/
 // -----------------------------------------------------------------------------
 type CivilTime time.Time
@@ -1824,9 +1850,11 @@ func main() {
 	router.Use(gin.Recovery())
 	router.Use(LoggingMiddleware())
 
-	authorized := router.Group("/api", gin.BasicAuth(gin.Accounts{
-		basicAuthUsername: basicAuthPassword,
-	}))
+	authorized := router.Group("/api", verifyTokenController())
+
+	//authorized := router.Group("/api", gin.BasicAuth(gin.Accounts{
+	// 	basicAuthUsername: basicAuthPassword,
+	// }))
 
 	// public := router.Group("/public")
 	// public.POST("/register", registerLoginUser)
@@ -1851,6 +1879,7 @@ func main() {
 	authorized.PUT("/persons/:pers_uuid", putDTOPerson)
 	authorized.DELETE("/persons/:pers_uuid", deleteDTOPerson)
 
+	// 204 und verwerfen
 	authorized.GET("/club-members/:clubmem_uuid", getDTOClubMember)
 	authorized.PUT("/club-members/:clubmem_uuid", putDTOClubMember)
 	authorized.DELETE("/club-members/:clubmem_uuid", deleteDTOClubMember)
@@ -1859,7 +1888,7 @@ func main() {
 	authorized.PUT("/club-officials/:official_uuid", putDTOClubOfficial)
 	authorized.DELETE("/club-officials/:official_uuid", deleteDTOClubOfficial)
 
-	// new, may not implement
+	// see club-members implementation
 	// authorized.GET("/player-licences/:license_uuid", getDTOPlayerLicense)
 	// authorized.PUT("/player-licences/:license_uuid", putDTOPlayerLicense)
 	// authorized.DELETE("/player-licences/:license_uuid", deleteDTOPlayerLicense)
