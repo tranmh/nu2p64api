@@ -31,11 +31,11 @@ testcases:
     assertions:
     - result.statuscode ShouldEqual 200
     - result.timeseconds ShouldBeLessThan 2
-- name: GET persons Cuong
+- name: GET address of Cuong
   steps:
   - type: http
     method: GET
-    url: {{.url}}/persons/babe8313-f269-11ed-927b-005056054f4e
+    url: {{.url}}/addresses/44b35481-f26c-11ed-927b-005056054f4e
     timeout: 5
     assertions:
     - result.statuscode ShouldEqual 200
