@@ -1931,6 +1931,7 @@ func main() {
 	router.Use(gin.Recovery())
 	router.Use(LoggingMiddleware())
 
+	// authorized := router.Group("/api")
 	authorized := router.Group("/api", verifyTokenController())
 
 	//authorized := router.Group("/api", gin.BasicAuth(gin.Accounts{

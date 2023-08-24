@@ -1,0 +1,42 @@
+name: APIIntegrationTest
+
+vars:
+  url: http://test.svw.info:3030/api
+
+testcases:
+- name: GET federations Göppingen
+  steps:
+  - type: http
+    method: GET
+    url: {{.url}}/federations/6e358ea2-f26a-11ed-927b-005056054f4e
+    timeout: 5
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.timeseconds ShouldBeLessThan 1
+- name: GET federations Deutscher Schachbund
+  steps:
+  - type: http
+    method: GET
+    url: {{.url}}/federations/6e25f2a5-f26a-11ed-927b-005056054f4e
+    timeout: 5
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.timeseconds ShouldBeLessThan 1
+- name: GET persons Cuong
+  steps:
+  - type: http
+    method: GET
+    url: {{.url}}/persons/babe8313-f269-11ed-927b-005056054f4e
+    timeout: 5
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.timeseconds ShouldBeLessThan 2
+- name: GET persons Cuong
+  steps:
+  - type: http
+    method: GET
+    url: {{.url}}/persons/babe8313-f269-11ed-927b-005056054f4e
+    timeout: 5
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.timeseconds ShouldBeLessThan 2
