@@ -476,34 +476,40 @@ type DTOPerson struct {
 func validateDTOAddress(dtoaddress DTOAddress) (bool, error) {
 	var err error
 
-	_, err = mail.ParseAddress(dtoaddress.Email)
-	if err != nil {
-		return false, err
+	if strings.TrimSpace(dtoaddress.Email) != "" {
+		_, err = mail.ParseAddress(dtoaddress.Email)
+		if err != nil {
+			return false, err
+		}
 	}
 
-	_, err = mail.ParseAddress(dtoaddress.Email2)
-	if err != nil {
-		return false, err
+	if strings.TrimSpace(dtoaddress.Email2) != "" {
+		_, err = mail.ParseAddress(dtoaddress.Email2)
+		if err != nil {
+			return false, err
+		}
 	}
 
-	_, err = url.ParseRequestURI(dtoaddress.WWW)
-	if err != nil {
-		return false, err
+	if strings.TrimSpace(dtoaddress.WWW) != "" {
+		_, err = url.ParseRequestURI(dtoaddress.WWW)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	// https://www.golangprograms.com/regular-expression-to-validate-phone-number.html
 	re := regexp.MustCompile(`^(?:(?:\(?(?:00|\+)([1-4]\d\d|[1-9]\d?)\)?)?[\-\.\ \\\/]?)?((?:\(?\d{1,}\)?[\-\.\ \\\/]?){0,})(?:[\-\.\ \\\/]?(?:#|ext\.?|extension|x)[\-\.\ \\\/]?(\d+))?$`)
 
 	if !re.MatchString(dtoaddress.Phone_Mobile) {
-		return false, errors.New("dtoaddress.Phone_Mobile is not a valid phone number" + dtoaddress.Phone_Mobile)
+		return false, errors.New("dtoaddress.Phone_Mobile is not a valid phone number: " + dtoaddress.Phone_Mobile)
 	}
 
 	if !re.MatchString(dtoaddress.Phone_Home) {
-		return false, errors.New("dtoaddress.Phone_Home is not a valid phone number" + dtoaddress.Phone_Home)
+		return false, errors.New("dtoaddress.Phone_Home is not a valid phone number: " + dtoaddress.Phone_Home)
 	}
 
 	if !re.MatchString(dtoaddress.Phone_Work) {
-		return false, errors.New("dtoaddress.Phone_Work is not a valid phone number" + dtoaddress.Phone_Work)
+		return false, errors.New("dtoaddress.Phone_Work is not a valid phone number: " + dtoaddress.Phone_Work)
 	}
 
 	return true, nil
