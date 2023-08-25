@@ -666,10 +666,12 @@ func deleteDTOGeneric(c *gin.Context, uuidParam string, deleteSQLStr string) {
 			rowsAffected, err2 := result.RowsAffected()
 			if err2 != nil {
 				c.JSON(500, err2.Error())
-			} else if rowsAffected != 1 {
-				c.JSON(500, rowsAffected)
-			} else {
+			} else if rowsAffected == 0 {
+				c.JSON(404, rowsAffected)
+			} else if rowsAffected == 1 {
 				c.JSON(200, rowsAffected)
+			} else {
+				c.JSON(500, rowsAffected)
 			}
 		}
 	} else {
@@ -828,8 +830,24 @@ func getDTOFederation(c *gin.Context) {
 	var federation DTOFederation
 
 	if isValidUUID(fed_uuid) {
+
 		myUuid, _ := uuid.Parse(fed_uuid)
 		federation.UUID = myUuid
+
+		var count string
+		var sqlSelectQuery string = `select count(*) from organisation where uuid = "` + myUuid.String() + `"`
+		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
+		log.Info(sqlSelectQuery)
+
+		if errDBExec != nil {
+			c.JSON(500, errDBExec.Error())
+			return
+		} else {
+			if strings.Compare(count, "0") == 0 {
+				c.JSON(404, "federation with the uuid was not found in the database: "+myUuid.String())
+				return
+			}
+		}
 
 		err := db.QueryRow("SELECT name, vkz, kurzname FROM `organisation` where uuid = ?", myUuid).
 			Scan(
@@ -882,7 +900,7 @@ func putDTOFederation(c *gin.Context) {
 		log.Info(sqlSelectQuery)
 
 		if errDBExec != nil {
-			c.JSON(500, err.Error())
+			c.JSON(500, errDBExec.Error())
 		} else {
 
 			if strings.Compare(count, "0") == 0 { // insert
@@ -896,7 +914,7 @@ func putDTOFederation(c *gin.Context) {
 					VALUES ("` + federation.UUID.String() +
 					`", "` + federation.Name +
 					`", "` + federation.Fedration_NR +
-					`", "` + federation.NickName + `)
+					`", "` + federation.NickName + `")
 				`
 				log.Infoln(sqlInsertQuery)
 
@@ -931,6 +949,12 @@ func putDTOFederation(c *gin.Context) {
 	} else {
 		c.JSON(400, errors.New("uuid is not valid"+federation.UUID.String()))
 	}
+}
+
+func deleteDTOFederation(c *gin.Context) {
+	fed_uuid := c.Param("fed_uuid")
+	deleteSQLStr := "delete from organisation where uuid = ?"
+	deleteDTOGeneric(c, fed_uuid, deleteSQLStr)
 }
 
 func getSportAddressUUIDs(organisationId int) ([]uuid.UUID, error) {
@@ -1954,6 +1978,7 @@ func main() {
 
 	authorized.GET("/federations/:fed_uuid", getDTOFederation)
 	authorized.PUT("/federations/:fed_uuid", putDTOFederation)
+	authorized.DELETE("/federations/:fed_uuid", deleteDTOFederation)
 
 	authorized.GET("/clubs/:club_uuid", getDTOClub)
 	authorized.PUT("/clubs/:club_uuid", putDTOClub)

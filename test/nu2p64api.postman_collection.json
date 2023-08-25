@@ -284,6 +284,278 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Federation",
+			"item": [
+				{
+					"name": "CRUD",
+					"item": [
+						{
+							"name": "Get none existing club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/federations/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"federations",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Put new club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"fedreation-nr\": \"C0327\",\r\n    \"name\": \"SF 1888 Göppingen\",\r\n    \"nickname\": \"SF Göppingen\",\r\n    \"region-uuid\": \"00000000-0000-0000-0000-000000000000\"\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/federations/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"federations",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get new club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"C0327\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/federations/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"federations",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"fedreation-nr\": \"C0XXX\",\r\n    \"name\": \"SF 1888 Göppingen\",\r\n    \"nickname\": \"SF Göppingen\",\r\n    \"region-uuid\": \"00000000-0000-0000-0000-000000000000\"\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/federations/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"federations",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get updated club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"C0XXX\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/federations/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"federations",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete existing club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/federations/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"federations",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete none existing club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/federations/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"federations",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Get Göppingen",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/federations/6e358ea2-f26a-11ed-927b-005056054f4e",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"federations",
+								"6e358ea2-f26a-11ed-927b-005056054f4e"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {
