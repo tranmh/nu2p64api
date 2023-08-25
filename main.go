@@ -6,11 +6,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -22,6 +24,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 var (
@@ -29,6 +32,7 @@ var (
 	yourMySQLdatabasepassword string
 	basicAuthUsername         string
 	basicAuthPassword         string
+	errLog                    *log.Logger
 )
 
 // -----------------------------------------------------------------------------
@@ -91,6 +95,31 @@ func initLog() {
 
 	log.SetLevel(logLevel)
 	// log.SetFormatter(&log.JSONFormatter{})
+}
+
+// -----------------------------------------------------------------------------
+// https://stackoverflow.com/questions/28796021/how-can-i-log-in-golang-to-a-file-with-log-rotation
+func SetupLogger() {
+
+	lumberjackLogger := &lumberjack.Logger{
+		// Log file abbsolute path, os agnostic
+		Filename:   filepath.ToSlash("main.log"),
+		MaxSize:    5, // MB
+		MaxBackups: 10,
+		MaxAge:     30,   // days
+		Compress:   true, // disabled by default
+	}
+
+	// Fork writing into two outputs
+	multiWriter := io.MultiWriter(os.Stderr, lumberjackLogger)
+
+	logFormatter := new(log.TextFormatter)
+	logFormatter.TimestampFormat = time.RFC1123Z // or RFC3339
+	logFormatter.FullTimestamp = true
+
+	log.SetFormatter(logFormatter)
+	log.SetLevel(log.InfoLevel)
+	log.SetOutput(multiWriter)
 }
 
 // -----------------------------------------------------------------------------
@@ -540,6 +569,7 @@ type DTOPlayerLicense struct {
 
 func init() {
 	initLog()
+	SetupLogger()
 }
 
 func isValidUUID(u string) bool {
