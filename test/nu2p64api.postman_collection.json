@@ -1367,6 +1367,369 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Club Member",
+			"item": [
+				{
+					"name": "Get not supported",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/club-members/63598d7e-beef-beef-dead-005056054f4e",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"club-members",
+								"63598d7e-beef-beef-dead-005056054f4e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Put not supported",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/club-members/63598d7e-beef-beef-dead-005056054f4e",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"club-members",
+								"63598d7e-beef-beef-dead-005056054f4e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete not supported",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/club-members/63598d7e-beef-beef-dead-005056054f4e",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"club-members",
+								"63598d7e-beef-beef-dead-005056054f4e"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Player License",
+			"item": [
+				{
+					"name": "CRUD",
+					"item": [
+						{
+							"name": "Get none existing player license",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/player-licences/b6fa157d-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"player-licences",
+										"b6fa157d-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create new player license",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"2020-07-02\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"b6fa157d-beef-beef-dead-005056054f4e\",\r\n    \"club-uuid\": \"6e358ea2-f26a-11ed-927b-005056054f4e\",\r\n    \"person-uuid\": \"babe8313-f269-11ed-927b-005056054f4e\",\r\n    \"member-from\": \"2020-07-02\",\r\n    \"member-until\": \"0001-01-01\",\r\n    \"licence-state\": \"ACTIVE\",\r\n    \"license-valid-from\": \"0001-01-01\",\r\n    \"license-valid-until\": \"0001-01-01\",\r\n    \"member-nr\": 297\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/player-licences/b6fa157d-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"player-licences",
+										"b6fa157d-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get new created player license",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"2020-07-02\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/player-licences/b6fa157d-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"player-licences",
+										"b6fa157d-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify existing player license",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"2022-02-02\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"b6fa157d-beef-beef-dead-005056054f4e\",\r\n    \"club-uuid\": \"6e358ea2-f26a-11ed-927b-005056054f4e\",\r\n    \"person-uuid\": \"babe8313-f269-11ed-927b-005056054f4e\",\r\n    \"member-from\": \"2022-02-02\",\r\n    \"member-until\": \"0001-01-01\",\r\n    \"licence-state\": \"ACTIVE\",\r\n    \"license-valid-from\": \"0001-01-01\",\r\n    \"license-valid-until\": \"0001-01-01\",\r\n    \"member-nr\": 297\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/player-licences/b6fa157d-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"player-licences",
+										"b6fa157d-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read modify player license",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"2022-02-02\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/player-licences/b6fa157d-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"player-licences",
+										"b6fa157d-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete existing player license",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/player-licences/b6fa157d-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"player-licences",
+										"b6fa157d-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete none existing player license",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/player-licences/b6fa157d-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"player-licences",
+										"b6fa157d-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Read existing player license",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/player-licences/b6fa157d-f26b-11ed-927b-005056054f4e",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"player-licences",
+								"b6fa157d-f26b-11ed-927b-005056054f4e"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {

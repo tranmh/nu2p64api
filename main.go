@@ -1548,13 +1548,28 @@ func deleteDTOAddress(c *gin.Context) {
 }
 
 // table person and table mitgliedschaft
-func getDTOClubMember(c *gin.Context) {
-	clubmem_uuid := c.Param("clubmem_uuid")
+func getDTOPlayerLicense(c *gin.Context) {
+	license_uuid := c.Param("license_uuid")
 	var clubmember DTOClubMember
 
-	if isValidUUID(clubmem_uuid) {
-		myUuid, _ := uuid.Parse(clubmem_uuid)
+	if isValidUUID(license_uuid) {
+		myUuid, _ := uuid.Parse(license_uuid)
 		clubmember.UUID = myUuid
+
+		var count string
+		var sqlSelectQueryCount string = `select count(*) from mitgliedschaft where uuid = "` + myUuid.String() + `"`
+		errDBExec := db.QueryRow(sqlSelectQueryCount).Scan(&count)
+		log.Info(sqlSelectQueryCount)
+
+		if errDBExec != nil {
+			c.JSON(500, errDBExec.Error())
+			return
+		} else {
+			if strings.Compare(count, "0") == 0 {
+				c.JSON(404, "player license (table mitgliedschaft) with the uuid was not found in the database: "+myUuid.String())
+				return
+			}
+		}
 
 		// TODO: ask Holger. Semantic behind status, stat1 and stat2.
 		// TODO: ask Nu, how to map member-from, member-until, license-valid-from, license-valid-until
@@ -1570,7 +1585,7 @@ func getDTOClubMember(c *gin.Context) {
 				person
 			WHERE mitgliedschaft.organisation = organisation.id AND 
 				mitgliedschaft.person = person.id AND
-				mitgliedschaft.uuid = "` + clubmem_uuid + `"`
+				mitgliedschaft.uuid = "` + license_uuid + `"`
 		log.Infoln(sqlSelectQuery)
 
 		var memberFrom string
@@ -1620,7 +1635,7 @@ func getDTOClubMember(c *gin.Context) {
 		c.JSON(200, clubmember)
 
 	} else {
-		c.JSON(400, errors.New("uuid is not valid "+clubmem_uuid))
+		c.JSON(400, "uuid is not valid: "+license_uuid)
 	}
 }
 
@@ -1647,18 +1662,18 @@ func getIDFromUUID(tableName string, myUuid uuid.UUID) (id int, rErr error) {
 	return tmpId, rErr
 }
 
-func putDTOClubMember(c *gin.Context) {
-	clubmem_uuid := c.Param("clubmem_uuid")
+func putDTOPlayerLicense(c *gin.Context) {
+	license_uuid := c.Param("license_uuid")
 	var clubmember DTOClubMember
 
 	err := c.BindJSON(&clubmember)
 	if err != nil {
-		c.JSON(400, err)
+		c.JSON(400, err.Error())
 		return
 	}
 
-	if strings.Compare(clubmem_uuid, clubmember.UUID.String()) != 0 {
-		c.JSON(400, "uuid from URL and uuid as JSON in body does not fit: "+clubmem_uuid+" vs "+clubmember.UUID.String())
+	if strings.Compare(license_uuid, clubmember.UUID.String()) != 0 {
+		c.JSON(400, "uuid from URL and uuid as JSON in body does not fit: "+license_uuid+" vs "+clubmember.UUID.String())
 		return
 	}
 
@@ -1746,10 +1761,10 @@ func putDTOClubMember(c *gin.Context) {
 	}
 }
 
-func deleteDTOClubMember(c *gin.Context) {
-	clubmem_uuid := c.Param("clubmem_uuid")
+func deleteDTOPlayerLicense(c *gin.Context) {
+	license_uuid := c.Param("license_uuid")
 	deleteSQLStr := "delete from mitgliedschaft where uuid = ?"
-	deleteDTOGeneric(c, clubmem_uuid, deleteSQLStr)
+	deleteDTOGeneric(c, license_uuid, deleteSQLStr)
 }
 
 // table funktion
@@ -1960,16 +1975,16 @@ func putDTORegion(c *gin.Context) {
 	c.JSON(204, "Mivis does not support Region, so ignore and no handling of input.")
 }
 
-func getDTOPlayerLicense(c *gin.Context) {
-	c.JSON(204, "Not implemented yet")
+func getDTOClubMember(c *gin.Context) {
+	c.JSON(204, "Mivis does not support Club Member, so ignore and no handling of input.")
 }
 
-func putDTOPlayerLicense(c *gin.Context) {
-	c.JSON(204, "Not implemented yet")
+func putDTOClubMember(c *gin.Context) {
+	c.JSON(204, "Mivis does not support Club Member, so ignore and no handling of input.")
 }
 
-func deleteDTOPlayerLicense(c *gin.Context) {
-	c.JSON(204, "Not implemented yet")
+func deleteDTOClubMember(c *gin.Context) {
+	c.JSON(204, "Mivis does not support Club Member, so ignore and no handling of input.")
 }
 
 func main() {
@@ -1991,7 +2006,7 @@ func main() {
 	router := gin.New()
 
 	router.Use(gin.Recovery())
-	router.Use(LoggingMiddleware())
+	// router.Use(LoggingMiddleware())
 
 	// authorized := router.Group("/api")
 	authorized := router.Group("/api", verifyTokenController())
@@ -2024,7 +2039,6 @@ func main() {
 	authorized.PUT("/persons/:pers_uuid", putDTOPerson)
 	authorized.DELETE("/persons/:pers_uuid", deleteDTOPerson)
 
-	// 204 und verwerfen
 	authorized.GET("/club-members/:clubmem_uuid", getDTOClubMember)
 	authorized.PUT("/club-members/:clubmem_uuid", putDTOClubMember)
 	authorized.DELETE("/club-members/:clubmem_uuid", deleteDTOClubMember)
@@ -2033,10 +2047,9 @@ func main() {
 	authorized.PUT("/club-officials/:official_uuid", putDTOClubOfficial)
 	authorized.DELETE("/club-officials/:official_uuid", deleteDTOClubOfficial)
 
-	// see club-members implementation
-	// authorized.GET("/player-licences/:license_uuid", getDTOPlayerLicense)
-	// authorized.PUT("/player-licences/:license_uuid", putDTOPlayerLicense)
-	// authorized.DELETE("/player-licences/:license_uuid", deleteDTOPlayerLicense)
+	authorized.GET("/player-licences/:license_uuid", getDTOPlayerLicense)
+	authorized.PUT("/player-licences/:license_uuid", putDTOPlayerLicense)
+	authorized.DELETE("/player-licences/:license_uuid", deleteDTOPlayerLicense)
 
 	// router.Run(":3030")
 	router.RunTLS(":3030", "/etc/letsencrypt/live/test.svw.info/cert.pem", "/etc/letsencrypt/live/test.svw.info/privkey.pem")
