@@ -558,7 +558,7 @@
 			]
 		},
 		{
-			"name": "Regions",
+			"name": "Region",
 			"item": [
 				{
 					"name": "New Request",
@@ -828,6 +828,274 @@
 							"path": [
 								"clubs",
 								"6e358ea2-f26a-11ed-927b-005056054f4e"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Address",
+			"item": [
+				{
+					"name": "CRUD",
+					"item": [
+						{
+							"name": "Get none existing address",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/addresses/44b35481-dead-dead-beef-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"addresses",
+										"44b35481-dead-dead-beef-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create new address",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"Karlstr\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"name\": \"\",\r\n    \"name2\": \"\",\r\n    \"street\": \"Vordere Karlstr. 72\",\r\n    \"zip\": \"73033\",\r\n    \"city\": \"Göppingen\",\r\n    \"country\": \"Deutschland\",\r\n    \"email\": \"456@de\",\r\n    \"email2\": \"\",\r\n    \"www\": \"\",\r\n    \"phone-mobile\": \"0176 24235453\",\r\n    \"phone-home\": \"123\",\r\n    \"phone-work\": \"\",\r\n    \"longitude\": 0,\r\n    \"latitude\": 0\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/addresses/44b35481-dead-dead-beef-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"addresses",
+										"44b35481-dead-dead-beef-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get existing address",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"Karlstr\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/addresses/44b35481-dead-dead-beef-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"addresses",
+										"44b35481-dead-dead-beef-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify existing address",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"Hintere Karlstr\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"name\": \"\",\r\n    \"name2\": \"\",\r\n    \"street\": \"Hintere Karlstr. 72\",\r\n    \"zip\": \"73033\",\r\n    \"city\": \"Göppingen\",\r\n    \"country\": \"Deutschland\",\r\n    \"email\": \"456@de\",\r\n    \"email2\": \"\",\r\n    \"www\": \"\",\r\n    \"phone-mobile\": \"0176 24235453\",\r\n    \"phone-home\": \"123\",\r\n    \"phone-work\": \"\",\r\n    \"longitude\": 0,\r\n    \"latitude\": 0\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/addresses/44b35481-dead-dead-beef-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"addresses",
+										"44b35481-dead-dead-beef-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get modified address",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"Hintere Karlstr\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/addresses/44b35481-dead-dead-beef-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"addresses",
+										"44b35481-dead-dead-beef-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete existing address",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/addresses/44b35481-dead-dead-beef-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"addresses",
+										"44b35481-dead-dead-beef-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete none existing address",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/addresses/44b35481-dead-dead-beef-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"addresses",
+										"44b35481-dead-dead-beef-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Get address from Cuong",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Body matches string\", function () {\r",
+									"    pm.expect(pm.response.text()).to.include(\"Karlstr\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/addresses/44b35481-f26c-11ed-927b-005056054f4e",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"addresses",
+								"44b35481-f26c-11ed-927b-005056054f4e"
 							]
 						}
 					},
