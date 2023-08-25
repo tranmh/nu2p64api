@@ -1,0 +1,326 @@
+{
+	"info": {
+		"_postman_id": "d22f21fb-5e8c-4740-87f1-88be01e04015",
+		"name": "nu2p64api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29349200"
+	},
+	"item": [
+		{
+			"name": "Person",
+			"item": [
+				{
+					"name": "CRUD",
+					"item": [
+						{
+							"name": "Put Person X",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"FN\",\r\n    \"lastname\": \"LN\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-f26c-11ed-927b-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": \"1\",\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/persons/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"persons",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Person X",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"FN\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/persons/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"persons",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Put Person X Copy",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"FN2\",\r\n    \"lastname\": \"LN2\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-f26c-11ed-927b-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": \"1\",\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/persons/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"persons",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Person X Copy",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"FN2\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/persons/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"persons",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Person X",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/persons/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"persons",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Get Person Cuong",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/persons/babe8313-f269-11ed-927b-005056054f4e",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"persons",
+								"babe8313-f269-11ed-927b-005056054f4e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Put Person Cuong",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Body matches string\", function () {\r",
+									"    pm.expect(pm.response.text()).to.include(\"Tran\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"uuid\": \"babe8313-f269-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"Minh Cuong\",\r\n    \"lastname\": \"Tran test\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-f26c-11ed-927b-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": \"1\",\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/persons/babe8313-f269-11ed-927b-005056054f4e",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"persons",
+								"babe8313-f269-11ed-927b-005056054f4e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Person Unknown",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {\r",
+									"    pm.response.to.have.status(404);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/persons/deadbeef-f269-11ed-927b-005056054f4e",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"persons",
+								"deadbeef-f269-11ed-927b-005056054f4e"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE4NDkxMTk2ODksInVzZXJfaWQiOjF9.p6uovR0xsEz2hAwC_5mgyh0jwGLbNPZsPIg-fs4cUMU",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://test.svw.info:3030/api",
+			"type": "string"
+		}
+	]
+}
