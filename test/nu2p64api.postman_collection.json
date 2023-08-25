@@ -1102,6 +1102,271 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Club Official",
+			"item": [
+				{
+					"name": "CRUD",
+					"item": [
+						{
+							"name": "Get not existing club official",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/club-officials/63598d7e-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"club-officials",
+										"63598d7e-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create new club official",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"2005-05-07\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"63598d7e-beef-beef-dead-005056054f4e\",\r\n    \"club-uuid\": \"6e25f2a5-f26a-11ed-927b-005056054f4e\",\r\n    \"member-uuid\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"person-uuid\": \"bb537149-f269-11ed-927b-005056054f4e\",\r\n    \"role-name\": \"\",\r\n    \"valid-from\": \"2005-05-07\",\r\n    \"valid-until\": \"0001-01-01\"\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/club-officials/63598d7e-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"club-officials",
+										"63598d7e-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read created club official",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"2005-05-07\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/club-officials/63598d7e-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"club-officials",
+										"63598d7e-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify club official",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"2005-04-02\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"63598d7e-beef-beef-dead-005056054f4e\",\r\n    \"club-uuid\": \"6e25f2a5-f26a-11ed-927b-005056054f4e\",\r\n    \"member-uuid\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"person-uuid\": \"bb537149-f269-11ed-927b-005056054f4e\",\r\n    \"role-name\": \"\",\r\n    \"valid-from\": \"2005-04-02\",\r\n    \"valid-until\": \"0001-01-01\"\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/club-officials/63598d7e-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"club-officials",
+										"63598d7e-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read modified club official",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"2005-04-02\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/club-officials/63598d7e-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"club-officials",
+										"63598d7e-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete existing club official",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/club-officials/63598d7e-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"club-officials",
+										"63598d7e-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete none existing club official",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/club-officials/63598d7e-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"club-officials",
+										"63598d7e-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Get club official",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/club-officials/63598d7e-f26b-11ed-927b-005056054f4e",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"club-officials",
+								"63598d7e-f26b-11ed-927b-005056054f4e"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {

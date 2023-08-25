@@ -1761,6 +1761,21 @@ func getDTOClubOfficial(c *gin.Context) {
 		myUuid, _ := uuid.Parse(official_uuid)
 		clubofficial.UUID = myUuid
 
+		var count string
+		var sqlSelectQueryCount string = `select count(*) from funktion where uuid = "` + myUuid.String() + `"`
+		errDBExec := db.QueryRow(sqlSelectQueryCount).Scan(&count)
+		log.Info(sqlSelectQueryCount)
+
+		if errDBExec != nil {
+			c.JSON(500, errDBExec.Error())
+			return
+		} else {
+			if strings.Compare(count, "0") == 0 {
+				c.JSON(404, "club official with the uuid was not found in the database: "+myUuid.String())
+				return
+			}
+		}
+
 		// TODO: we do not have and do not need member-uuid?
 		var sqlSelectQuery string = `
 			SELECT  
