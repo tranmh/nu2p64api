@@ -877,7 +877,7 @@ func putDTOFederation(c *gin.Context) {
 	}
 
 	if strings.Compare(fed_uuid, federation.UUID.String()) != 0 {
-		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fit: "+fed_uuid+" vs "+federation.UUID.String()))
+		c.JSON(400, "uuid from URL and uuid as JSON in body does not fit: "+fed_uuid+" vs "+federation.UUID.String())
 		return
 	}
 
@@ -999,6 +999,21 @@ func getDTOClub(c *gin.Context) {
 	myUuid, _ := uuid.Parse(club_uuid)
 	club.UUID = myUuid
 
+	var count string
+	var sqlSelectQueryCount string = `select count(*) from organisation where uuid = "` + myUuid.String() + `"`
+	errDBExec := db.QueryRow(sqlSelectQueryCount).Scan(&count)
+	log.Info(sqlSelectQueryCount)
+
+	if errDBExec != nil {
+		c.JSON(500, errDBExec.Error())
+		return
+	} else {
+		if strings.Compare(count, "0") == 0 {
+			c.JSON(404, "club with the uuid was not found in the database: "+myUuid.String())
+			return
+		}
+	}
+
 	var tmpEntryDate string
 	var tmpAddressId int
 	var tmpOrganisationId int
@@ -1009,7 +1024,7 @@ func getDTOClub(c *gin.Context) {
 			ifnull(organisation.vkz, ''),
 			ifnull(organisation.name, ''),
 			ifnull(organisation.grundungsdatum, ''),
-			ifnull(organisation.adress, ''),
+			ifnull(organisation.adress, '-1'),
 			ifnull(organisation.id, ''),
 			ifnull(organisation.istAbteilung, '')
 		FROM organisation 
@@ -1038,10 +1053,12 @@ func getDTOClub(c *gin.Context) {
 		}
 	}
 
-	club.Contact_Address_UUID, err = getUUIDFromID("adresse", tmpAddressId)
-	if err != nil {
-		c.JSON(500, err.Error())
-		return
+	if tmpAddressId != -1 {
+		club.Contact_Address_UUID, err = getUUIDFromID("adresse", tmpAddressId)
+		if err != nil {
+			c.JSON(500, err.Error())
+			return
+		}
 	}
 
 	club.Sport_Address_UUIDs, err = getSportAddressUUIDs(tmpOrganisationId)
@@ -1075,7 +1092,7 @@ func putDTOClub(c *gin.Context) {
 	}
 
 	if strings.Compare(club_uuid, club.UUID.String()) != 0 {
-		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fit: "+club_uuid+" vs "+club.UUID.String()))
+		c.JSON(400, "uuid from URL and uuid as JSON in body does not fit: "+club_uuid+" vs "+club.UUID.String())
 		return
 	}
 
@@ -1367,7 +1384,7 @@ func updateDTOAddressOnTableAdressen(c *gin.Context) {
 	}
 
 	if strings.Compare(addr_uuid, addressOfClub.UUID.String()) != 0 {
-		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfClub.UUID.String()))
+		c.JSON(400, "uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfClub.UUID.String())
 		return
 	}
 
@@ -1413,7 +1430,7 @@ func updateDTOAddressOnTableAdresse(c *gin.Context) {
 	}
 
 	if strings.Compare(addr_uuid, addressOfPerson.UUID.String()) != 0 {
-		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfPerson.UUID.String()))
+		c.JSON(400, "uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfPerson.UUID.String())
 		return
 	}
 
@@ -1471,7 +1488,7 @@ func insertDTOAddressIntoTableAdresse(c *gin.Context) {
 	}
 
 	if strings.Compare(addr_uuid, addressOfPerson.UUID.String()) != 0 {
-		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfPerson.UUID.String()))
+		c.JSON(400, "uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfPerson.UUID.String())
 		return
 	}
 
@@ -1641,7 +1658,7 @@ func putDTOClubMember(c *gin.Context) {
 	}
 
 	if strings.Compare(clubmem_uuid, clubmember.UUID.String()) != 0 {
-		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fit: "+clubmem_uuid+" vs "+clubmember.UUID.String()))
+		c.JSON(400, "uuid from URL and uuid as JSON in body does not fit: "+clubmem_uuid+" vs "+clubmember.UUID.String())
 		return
 	}
 
@@ -1829,7 +1846,7 @@ func putDTOClubOfficial(c *gin.Context) {
 	}
 
 	if strings.Compare(official_uuid, clubofficial.UUID.String()) != 0 {
-		c.JSON(400, errors.New("uuid from URL and uuid as JSON in body does not fit: "+official_uuid+" vs "+clubofficial.UUID.String()))
+		c.JSON(400, "uuid from URL and uuid as JSON in body does not fit: "+official_uuid+" vs "+clubofficial.UUID.String())
 		return
 	}
 

@@ -556,6 +556,284 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Regions",
+			"item": [
+				{
+					"name": "New Request",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/regions/deadbeef-dead-11ed-927b-005056054f4e",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"regions",
+								"deadbeef-dead-11ed-927b-005056054f4e"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Club",
+			"item": [
+				{
+					"name": "CRUD",
+					"item": [
+						{
+							"name": "Get none existing club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/clubs/6e358ea2-dead-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"clubs",
+										"6e358ea2-dead-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create new club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"6e358ea2-dead-beef-dead-005056054f4e\",\r\n    \"federation-uuid\": \"6e260f25-f26a-11ed-927b-005056054f4e\",\r\n    \"region-uuid\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"club-nr\": \"C0327\",\r\n    \"name\": \"SF 1888 Göppingen\",\r\n    \"entry-date\": \"0001-01-01\",\r\n    \"contact-address-uuid\": \"400f19c0-f26c-11ed-927b-005056054f4e\",\r\n    \"sport-address-uuids\": [\r\n        \"ab6547b3-f95b-11ed-b564-005056054f4e\"\r\n    ],\r\n    \"register-of-associations-nr\": \"\",\r\n    \"club-type\": \"SINGLEDEVISION\",\r\n    \"bank-account-owner\": \"\",\r\n    \"bank-account-bank\": \"\",\r\n    \"bank-account-big\": \"\",\r\n    \"bank-account-iban\": \"\",\r\n    \"direct-debit\": false\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/clubs/6e358ea2-dead-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"clubs",
+										"6e358ea2-dead-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read created club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/clubs/6e358ea2-dead-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"clubs",
+										"6e358ea2-dead-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify existing club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"C0XXX\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"6e358ea2-dead-beef-dead-005056054f4e\",\r\n    \"federation-uuid\": \"6e260f25-f26a-11ed-927b-005056054f4e\",\r\n    \"region-uuid\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"club-nr\": \"C0XXX\",\r\n    \"name\": \"SF 1888 Göppingen\",\r\n    \"entry-date\": \"0001-01-01\",\r\n    \"contact-address-uuid\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"sport-address-uuids\": null,\r\n    \"register-of-associations-nr\": \"\",\r\n    \"club-type\": \"SINGLEDEVISION\",\r\n    \"bank-account-owner\": \"\",\r\n    \"bank-account-bank\": \"\",\r\n    \"bank-account-big\": \"\",\r\n    \"bank-account-iban\": \"\",\r\n    \"direct-debit\": false\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/clubs/6e358ea2-dead-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"clubs",
+										"6e358ea2-dead-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete existing club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/clubs/6e358ea2-dead-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"clubs",
+										"6e358ea2-dead-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete none existing club",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/clubs/6e358ea2-dead-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"clubs",
+										"6e358ea2-dead-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Get Göppingen",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Body matches string\", function () {\r",
+									"    pm.expect(pm.response.text()).to.include(\"C0327\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/clubs/6e358ea2-f26a-11ed-927b-005056054f4e",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"clubs",
+								"6e358ea2-f26a-11ed-927b-005056054f4e"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {
