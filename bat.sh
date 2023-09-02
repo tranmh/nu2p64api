@@ -15,4 +15,4 @@ systemctl status nu2p64api.service
 # precondition:
 # sudo apt install nodejs npm -y; npm install -g newman
 cd test
-newman run nu2p64api.postman_collection.json --insecure
+newman run nu2p64api.postman_collection.json

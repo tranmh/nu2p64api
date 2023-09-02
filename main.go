@@ -2082,5 +2082,5 @@ func main() {
 	authorized.DELETE("/player-licences/:license_uuid", deleteDTOPlayerLicense)
 
 	// router.Run(":3030")
-	router.RunTLS(":3030", "/etc/letsencrypt/live/test.svw.info/cert.pem", "/etc/letsencrypt/live/test.svw.info/privkey.pem")
+	router.RunTLS(":3030", "/etc/letsencrypt/live/test.svw.info/fullchain.pem", "/etc/letsencrypt/live/test.svw.info/privkey.pem")
 }
