@@ -13,8 +13,8 @@
             "type": "string",
             "format": "uuid"
         },
-	"prev-club-uuid": {
-	    "$comment": "prev-club-uuid will be set in case of transfer requests",
+        "prev-club-uuid": {
+	        "$comment": "prev-club-uuid will be set in case of transfer requests",
             "type": "string",
             "format": "uuid"
         },
@@ -22,19 +22,19 @@
             "type": "string",
             "format": "uuid"
         },
-	"request-date": {
-	    "type": "string",
+        "request-date": {
+            "type": "string",
             "format": "date-time"	
-	},
-	"request_type": {
+        },
+        "request_type": {
 	    "enum": [
                 "ACTIVE",
-		"PASSIVE",
-                "CLULB_TRANSFER",
-		"SWITCH",
-		"DELETE"
+                "PASSIVE",
+                "CLUB_TRANSFER",
+                "SWITCH",
+                "DELETE"
             ]	
-	},
+	    },
         "licence-valid-from": {
             "type": "string",
             "format": "date"
