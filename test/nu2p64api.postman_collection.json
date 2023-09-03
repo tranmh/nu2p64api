@@ -1526,7 +1526,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"uuid\": \"b6fa157d-beef-beef-dead-005056054f4e\",\r\n    \"club-uuid\": \"6e358ea2-f26a-11ed-927b-005056054f4e\",\r\n    \"person-uuid\": \"babe8313-f269-11ed-927b-005056054f4e\",\r\n    \"member-from\": \"2020-07-02\",\r\n    \"member-until\": \"0001-01-01\",\r\n    \"licence-state\": \"ACTIVE\",\r\n    \"license-valid-from\": \"0001-01-01\",\r\n    \"license-valid-until\": \"0001-01-01\",\r\n    \"member-nr\": 297\r\n}"
+									"raw": "{\r\n    \"uuid\": \"b6fa157d-beef-beef-dead-005056054f4e\",\r\n    \"club-uuid\": \"6e358ea2-f26a-11ed-927b-005056054f4e\",\r\n    \"person-uuid\": \"babe8313-f269-11ed-927b-005056054f4e\",\r\n    \"request-date\": \"2023-09-03\",\r\n    \"license-valid-from\": \"2020-07-02\",\r\n    \"license-valid-until\": \"0001-01-01\",\r\n    \"license-state\": \"ACTIVE\",\r\n    \"member-nr\": 297\r\n}"
 								},
 								"url": {
 									"raw": "{{base_url}}/player-licences/b6fa157d-beef-beef-dead-005056054f4e",
@@ -1598,7 +1598,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"uuid\": \"b6fa157d-beef-beef-dead-005056054f4e\",\r\n    \"club-uuid\": \"6e358ea2-f26a-11ed-927b-005056054f4e\",\r\n    \"person-uuid\": \"babe8313-f269-11ed-927b-005056054f4e\",\r\n    \"member-from\": \"2022-02-02\",\r\n    \"member-until\": \"0001-01-01\",\r\n    \"licence-state\": \"ACTIVE\",\r\n    \"license-valid-from\": \"0001-01-01\",\r\n    \"license-valid-until\": \"0001-01-01\",\r\n    \"member-nr\": 297\r\n}"
+									"raw": "{\r\n    \"uuid\": \"b6fa157d-beef-beef-dead-005056054f4e\",\r\n    \"club-uuid\": \"6e358ea2-f26a-11ed-927b-005056054f4e\",\r\n    \"person-uuid\": \"babe8313-f269-11ed-927b-005056054f4e\",\r\n    \"request-date\": \"2023-09-03\",\r\n    \"license-valid-from\": \"2022-02-02\",\r\n    \"license-valid-until\": \"0001-01-01\",\r\n    \"license-state\": \"ACTIVE\",\r\n    \"member-nr\": 297\r\n}"
 								},
 								"url": {
 									"raw": "{{base_url}}/player-licences/b6fa157d-beef-beef-dead-005056054f4e",

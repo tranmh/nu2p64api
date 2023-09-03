@@ -359,33 +359,6 @@ func getLicenseStateFromString(licStateStr string) LicenseState {
 	}
 }
 
-type PlayerLicenseRequestType int
-
-const (
-	Active PlayerLicenseRequestType = iota
-	Passive
-	Club_Transfer
-	Switch
-	Delete
-	PlayerLicenseRequestTypeUnknown
-)
-
-func getPlayerLicenseRequestType(requestType string) PlayerLicenseRequestType {
-	if strings.Compare(requestType, "ACTIVE") == 0 {
-		return Active
-	} else if strings.Compare(requestType, "PASSIVE") == 0 {
-		return Passive
-	} else if strings.Compare(requestType, "CLUB_TRANSFER") == 0 {
-		return Club_Transfer
-	} else if strings.Compare(requestType, "SWITCH") == 0 {
-		return Switch
-	} else if strings.Compare(requestType, "DELETE") == 0 {
-		return Delete
-	} else {
-		return PlayerLicenseRequestTypeUnknown
-	}
-}
-
 type istAbteilung int
 
 const (
@@ -553,16 +526,14 @@ type DTORegion struct {
 }
 
 type DTOPlayerLicense struct {
-	UUID              uuid.UUID                `json:"uuid"`
-	Club_UUID         uuid.UUID                `json:"club-uuid"`
-	Prev_Club_UUID    uuid.UUID                `json:"prev-club-uuid"`
-	Person_UUID       uuid.UUID                `json:"person-uuid"`
-	RequestDate       CivilTime                `json:"request-date"`
-	RequestType       PlayerLicenseRequestType `json:"request_type"`
-	LicenseValidFrom  CivilTime                `json:"license-valid-from"`
-	LicenseValidUntil CivilTime                `json:"license-valid-until"`
-	LicenseState      string                   `json:"license-state"` // ACTIVE, PASSIVE
-	MemberNr          int                      `json:"member-nr"`     // PKZ
+	UUID              uuid.UUID `json:"uuid"`
+	Club_UUID         uuid.UUID `json:"club-uuid"`
+	Person_UUID       uuid.UUID `json:"person-uuid"`
+	RequestDate       CivilTime `json:"request-date"`
+	LicenseValidFrom  CivilTime `json:"license-valid-from"`
+	LicenseValidUntil CivilTime `json:"license-valid-until"`
+	License_State     string    `json:"license-state"` // ACTIVE, PASSIVE
+	Member_Nr         int       `json:"member-nr"`     // PKZ
 }
 
 // -----------------------------------------------------------------------------
@@ -1580,11 +1551,12 @@ func deleteDTOAddress(c *gin.Context) {
 // table person and table mitgliedschaft
 func getDTOPlayerLicense(c *gin.Context) {
 	license_uuid := c.Param("license_uuid")
-	var clubmember DTOClubMember
+	// var clubmember DTOClubMember
+	var playerlicense DTOPlayerLicense
 
 	if isValidUUID(license_uuid) {
 		myUuid, _ := uuid.Parse(license_uuid)
-		clubmember.UUID = myUuid
+		playerlicense.UUID = myUuid
 
 		var count string
 		var sqlSelectQueryCount string = `select count(*) from mitgliedschaft where uuid = "` + myUuid.String() + `"`
@@ -1624,26 +1596,26 @@ func getDTOPlayerLicense(c *gin.Context) {
 
 		err := db.QueryRow(sqlSelectQuery).
 			Scan(
-				&clubmember.Club_UUID,
-				&clubmember.Person_UUID,
+				&playerlicense.Club_UUID,
+				&playerlicense.Person_UUID,
 				&memberFrom,
 				&memberUntil,
 				&licenseState,
-				&clubmember.Member_Nr,
+				&playerlicense.Member_Nr,
 			)
 
 		log.Infoln(memberFrom)
 		log.Infoln(memberUntil)
 		var parseError error
 		if strings.Compare(memberFrom, "") != 0 {
-			clubmember.Member_From, parseError = parseStringToCivilTime(memberFrom)
+			playerlicense.LicenseValidFrom, parseError = parseStringToCivilTime(memberFrom)
 			if parseError != nil {
 				c.JSON(500, parseError.Error())
 				return
 			}
 		}
 		if strings.Compare(memberUntil, "") != 0 {
-			clubmember.Member_Until, parseError = parseStringToCivilTime(memberUntil)
+			playerlicense.LicenseValidUntil, parseError = parseStringToCivilTime(memberUntil)
 			if parseError != nil {
 				c.JSON(500, parseError.Error())
 				return
@@ -1655,14 +1627,14 @@ func getDTOPlayerLicense(c *gin.Context) {
 			c.JSON(500, err.Error())
 			return
 		}
-		clubmember.License_State = LicenseStateToString(LicenseState(myLicenseState))
+		playerlicense.License_State = LicenseStateToString(LicenseState(myLicenseState))
 
 		if err != nil {
 			c.JSON(500, err.Error())
 			return
 		}
 
-		c.JSON(200, clubmember)
+		c.JSON(200, playerlicense)
 
 	} else {
 		c.JSON(400, "uuid is not valid: "+license_uuid)
@@ -1694,21 +1666,21 @@ func getIDFromUUID(tableName string, myUuid uuid.UUID) (id int, rErr error) {
 
 func putDTOPlayerLicense(c *gin.Context) {
 	license_uuid := c.Param("license_uuid")
-	var clubmember DTOClubMember
+	var playerlicense DTOPlayerLicense
 
-	err := c.BindJSON(&clubmember)
+	err := c.BindJSON(&playerlicense)
 	if err != nil {
 		c.JSON(400, err.Error())
 		return
 	}
 
-	if strings.Compare(license_uuid, clubmember.UUID.String()) != 0 {
-		c.JSON(400, "uuid from URL and uuid as JSON in body does not fit: "+license_uuid+" vs "+clubmember.UUID.String())
+	if strings.Compare(license_uuid, playerlicense.UUID.String()) != 0 {
+		c.JSON(400, "uuid from URL and uuid as JSON in body does not fit: "+license_uuid+" vs "+playerlicense.UUID.String())
 		return
 	}
 
-	if isValidUUID(clubmember.UUID.String()) {
-		myUuid, parseErr := uuid.Parse(clubmember.UUID.String())
+	if isValidUUID(playerlicense.UUID.String()) {
+		myUuid, parseErr := uuid.Parse(playerlicense.UUID.String())
 
 		if parseErr != nil {
 			c.JSON(400, parseErr.Error())
@@ -1729,10 +1701,10 @@ func putDTOPlayerLicense(c *gin.Context) {
 			c.JSON(500, err.Error())
 		} else {
 
-			var person_id, _ = getIDFromUUID("person", clubmember.Person_UUID)
-			var organisation_id, _ = getIDFromUUID("organisation", clubmember.Club_UUID)
-			var fromStr = time.Time(clubmember.Member_From).Format("2006-01-02")
-			var untilStr = time.Time(clubmember.Member_Until).Format("2006-01-02")
+			var person_id, _ = getIDFromUUID("person", playerlicense.Person_UUID)
+			var organisation_id, _ = getIDFromUUID("organisation", playerlicense.Club_UUID)
+			var fromStr = time.Time(playerlicense.LicenseValidFrom).Format("2006-01-02")
+			var untilStr = time.Time(playerlicense.LicenseValidUntil).Format("2006-01-02")
 
 			if strings.Compare(count, "0") == 0 { // insert
 
@@ -1745,13 +1717,13 @@ func putDTOPlayerLicense(c *gin.Context) {
 						bis,
 						stat1,
 						spielernummer)
-					VALUES ("` + clubmember.UUID.String() +
+					VALUES ("` + playerlicense.UUID.String() +
 					`", ` + strconv.Itoa(person_id) +
 					`, "` + strconv.Itoa(organisation_id) +
 					`", "` + fromStr +
 					`", "` + untilStr +
-					`", "` + strconv.Itoa(int(getLicenseStateFromString(clubmember.License_State))) +
-					`", ` + strconv.Itoa(clubmember.Member_Nr) + `)
+					`", "` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) +
+					`", ` + strconv.Itoa(playerlicense.Member_Nr) + `)
 				`
 				log.Infoln(sqlInsertQuery)
 
@@ -1760,7 +1732,7 @@ func putDTOPlayerLicense(c *gin.Context) {
 				if err3 != nil {
 					c.JSON(400, err3.Error())
 				} else {
-					c.JSON(200, clubmember)
+					c.JSON(200, playerlicense)
 				}
 			} else if strings.Compare(count, "1") == 0 { // update
 
@@ -1770,9 +1742,9 @@ func putDTOPlayerLicense(c *gin.Context) {
 						organisation = ` + strconv.Itoa(organisation_id) + `,
 						von = "` + fromStr + `",
 						bis = "` + untilStr + `",
-						stat1 = ` + strconv.Itoa(int(getLicenseStateFromString(clubmember.License_State))) + `,
-						spielernummer = ` + strconv.Itoa(clubmember.Member_Nr) + `
-					WHERE uuid = "` + clubmember.UUID.String() + `"
+						stat1 = ` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) + `,
+						spielernummer = ` + strconv.Itoa(playerlicense.Member_Nr) + `
+					WHERE uuid = "` + playerlicense.UUID.String() + `"
 				`
 				log.Infoln(sqlUpdateQuery)
 
@@ -1780,14 +1752,14 @@ func putDTOPlayerLicense(c *gin.Context) {
 				if err4 != nil {
 					c.JSON(400, err4.Error())
 				} else {
-					c.JSON(200, clubmember)
+					c.JSON(200, playerlicense)
 				}
 			} else {
 				c.JSON(500, errors.New("panic, more than 1 club member with same uuid: "+myUuid.String()))
 			}
 		}
 	} else {
-		c.JSON(400, errors.New("uuid is not valid"+clubmember.UUID.String()))
+		c.JSON(400, errors.New("uuid is not valid "+playerlicense.UUID.String()))
 	}
 }
 
