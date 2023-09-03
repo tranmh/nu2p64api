@@ -2008,7 +2008,7 @@ func main() {
 	router := gin.New()
 
 	router.Use(gin.Recovery())
-	// router.Use(LoggingMiddleware())
+	router.Use(LoggingMiddleware())
 
 	// authorized := router.Group("/api")
 	authorized := router.Group("/api", verifyTokenController())
