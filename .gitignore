@@ -1,5 +1,6 @@
 main
 main.log
+main*.log.gz
 main.exe
 .env
 test/venom*log 
