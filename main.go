@@ -2053,6 +2053,8 @@ func main() {
 	authorized.PUT("/player-licences/:license_uuid", putDTOPlayerLicense)
 	authorized.DELETE("/player-licences/:license_uuid", deleteDTOPlayerLicense)
 
+	envFile, _ := godotenv.Read(".env")
+
 	// router.Run(":3030")
-	router.RunTLS(":3030", "/etc/letsencrypt/live/test.svw.info/fullchain.pem", "/etc/letsencrypt/live/test.svw.info/privkey.pem")
+	router.RunTLS(":3030", envFile["SSL_CERTFILE_FULLCHAIN"], envFile["SSL_PRIVATE_KEYFILE"])
 }

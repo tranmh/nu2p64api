@@ -15,4 +15,9 @@ systemctl status nu2p64api.service
 # precondition:
 # sudo apt install nodejs npm -y; npm install -g newman
 cd test
-newman run nu2p64api.postman_collection.json
+
+if [ "$HOSTNAME" = "mivis" ]; then 
+    newman run nu2p64api.postman_collection.json --env-var "base_url=https://portal.svw.info:3030/api" # portal.svw.info
+else
+    newman run nu2p64api.postman_collection.json # test.svw.info
+fi
