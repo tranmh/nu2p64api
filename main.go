@@ -104,8 +104,8 @@ func SetupLogger() {
 	lumberjackLogger := &lumberjack.Logger{
 		// Log file abbsolute path, os agnostic
 		Filename:   filepath.ToSlash("main.log"),
-		MaxSize:    5, // MB
-		MaxBackups: 10,
+		MaxSize:    500, // MB
+		MaxBackups: 100,
 		MaxAge:     30,   // days
 		Compress:   true, // disabled by default
 	}
