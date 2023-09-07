@@ -66,3 +66,16 @@ func Test_loginUser(t *testing.T) {
 	fmt.Println(token)
 
 }
+
+func Test_validateDTOAddress(t *testing.T) {
+	var address DTOAddress
+	address.WWW = "www.schachvereine.de"
+
+	result, _ := validateDTOAddress(address)
+
+	fmt.Println(result)
+	if result == false {
+		t.Error("result should be true")
+	}
+
+}

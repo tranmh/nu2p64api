@@ -493,6 +493,12 @@ func validateDTOAddress(dtoaddress DTOAddress) (bool, error) {
 	}
 
 	if strings.TrimSpace(dtoaddress.WWW) != "" {
+
+		if !strings.HasPrefix(strings.ToLower(dtoaddress.WWW), "https://") &&
+			!strings.HasPrefix(strings.ToLower(dtoaddress.WWW), "http://") {
+			dtoaddress.WWW = "https://" + dtoaddress.WWW
+		}
+
 		_, err = url.ParseRequestURI(dtoaddress.WWW)
 		if err != nil {
 			return false, err
