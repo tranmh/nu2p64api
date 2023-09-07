@@ -1414,6 +1414,10 @@ func updateDTOAddressOnTableAdressen(c *gin.Context) {
 }
 
 func getCountryIdByNameAKABezeichnung(countryNameAKABezeichnung string) (result int, err error) {
+	if (countryNameAKABezeichnung == "NULL") || (countryNameAKABezeichnung == "? unbekannt ?") {
+		return 1, nil
+	}
+
 	var selectQueryStr = "SELECT id FROM land where bezeichnung like '" + countryNameAKABezeichnung + "'"
 	var tmpId int
 	rErr := db.QueryRow(selectQueryStr).Scan(&tmpId)
