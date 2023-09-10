@@ -1,0 +1,18 @@
+mysql> ALTER TABLE person ADD COLUMN uuid varchar(36) after ID;
+mysql> UPDATE person SET uuid=(SELECT uuid());
+mysql> commit;
+mysql> ALTER TABLE organisation ADD COLUMN uuid varchar(36) after ID;
+mysql> UPDATE organisation SET uuid=(SELECT uuid());
+mysql> commit;
+mysql> ALTER TABLE funktion ADD COLUMN uuid varchar(36) after ID;
+mysql> UPDATE funktion SET uuid=(SELECT uuid());
+mysql> commit;
+mysql> ALTER TABLE mitgliedschaft ADD COLUMN uuid varchar(36) after ID;
+mysql> UPDATE mitgliedschaft SET uuid=(SELECT uuid());
+mysql> commit;
+mysql> ALTER TABLE adresse ADD COLUMN uuid varchar(36) after ID;
+mysql> UPDATE adresse SET uuid=(SELECT uuid());
+mysql> commit;
+mysql> ALTER TABLE adressen ADD COLUMN uuid varchar(36) after ID;
+mysql> UPDATE adressen SET uuid=(SELECT uuid());
+mysql> commit;
