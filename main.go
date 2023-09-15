@@ -1454,11 +1454,11 @@ func updateDTOAddressOnTableAdressen(c *gin.Context) {
 }
 
 func getCountryIdByNameAKABezeichnung(countryNameAKABezeichnung string) (result int, err error) {
-	if (countryNameAKABezeichnung == "NULL") || (countryNameAKABezeichnung == "? unbekannt ?") {
+	if (countryNameAKABezeichnung == "NULL") || (countryNameAKABezeichnung == "? unbekannt ?") || (countryNameAKABezeichnung == "?") {
 		return 1, nil
 	}
 
-	var selectQueryStr = "SELECT id FROM land where bezeichnung like '" + countryNameAKABezeichnung + "'"
+	var selectQueryStr = "SELECT id FROM land where bezeichnung like '" + countryNameAKABezeichnung + "' OR ioc like '" + countryNameAKABezeichnung + "'"
 	var tmpId int
 	rErr := db.QueryRow(selectQueryStr).Scan(&tmpId)
 	return tmpId, rErr
