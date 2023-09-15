@@ -1,0 +1,1 @@
+cat land.csv  | awk -F";" '{print "INSERT INTO land (id, bezeichnung, ioc) values (" $1 ", \"" $2 "\", \"" $9 "\");"}' | grep -v "\"\"" > landraw.sql
