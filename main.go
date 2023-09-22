@@ -574,7 +574,7 @@ func getDTOPerson(c *gin.Context) {
 	if isValidUUID(uuidParam) {
 
 		var count string
-		var sqlSelectQueryCount string = `select count(*) from person where uuid = "` + uuidParam + `"`
+		var sqlSelectQueryCount string = `select count(*) from person where uuid = '` + uuidParam + `'`
 		errDBExec := db.QueryRow(sqlSelectQueryCount).Scan(&count)
 		log.Info(sqlSelectQueryCount)
 
@@ -748,7 +748,7 @@ func putDTOPerson(c *gin.Context) {
 		}
 
 		var count string
-		var sqlSelectQuery string = `select count(*) from person where uuid = "` + myUuid.String() + `"`
+		var sqlSelectQuery string = `select count(*) from person where uuid = '` + myUuid.String() + `'`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
 		log.Info(sqlSelectQuery)
 
@@ -786,20 +786,20 @@ func putDTOPerson(c *gin.Context) {
 						bemerkung, 
 						nationfide, 
 						idfide)
-					VALUES ("` + person.UUID.String() +
-					`", "` + person.LastName +
-					`", "` + person.FirstName +
-					`", ` + strconv.Itoa(title) +
+					VALUES ('` + person.UUID.String() +
+					`', '` + person.LastName +
+					`', '` + person.FirstName +
+					`', ` + strconv.Itoa(title) +
 					`, ` + strconv.Itoa(int(sex)) +
 					`, ` + strconv.Itoa(addressID) +
-					`, "` + birthday +
-					`", "` + person.BirthPlace +
-					`", ` + strconv.Itoa(person.Dead) +
-					`, "` + person.Nation +
-					`", "` + person.Privacy_State +
-					`", "` + person.Remarks +
-					`", "` + person.FIDE_Nation +
-					`",` + person.FIDE_Id +
+					`, '` + birthday +
+					`', '` + person.BirthPlace +
+					`', ` + strconv.Itoa(person.Dead) +
+					`, '` + person.Nation +
+					`', '` + person.Privacy_State +
+					`', '` + person.Remarks +
+					`', '` + person.FIDE_Nation +
+					`',` + person.FIDE_Id +
 					`)
 				`
 				log.Info(sqlInsertQuery)
@@ -817,16 +817,16 @@ func putDTOPerson(c *gin.Context) {
 
 				var sqlUpdateQuery string = `
 					UPDATE person set 
-						name = "` + person.LastName + `",
-						vorname = "` + person.FirstName + `",
-						titel = "` + strconv.Itoa(title) + `",
-						geschlecht = "` + strconv.Itoa(int(sex)) + `",
-						geburtsdatum = "` + birthday + `",
-						nation = "` + person.Nation + `",
-						datenschutz = "` + person.Privacy_State + `",
-						nationfide = "` + person.FIDE_Nation + `",
+						name = '` + person.LastName + `',
+						vorname = '` + person.FirstName + `',
+						titel = '` + strconv.Itoa(title) + `',
+						geschlecht = '` + strconv.Itoa(int(sex)) + `',
+						geburtsdatum = '` + birthday + `',
+						nation = '` + person.Nation + `',
+						datenschutz = '` + person.Privacy_State + `',
+						nationfide = '` + person.FIDE_Nation + `',
 						idfide = ` + person.FIDE_Id + `
-					WHERE uuid = "` + person.UUID.String() + `"
+					WHERE uuid = '` + person.UUID.String() + `'
 				`
 				log.Infoln(sqlUpdateQuery)
 
@@ -860,7 +860,7 @@ func getDTOFederation(c *gin.Context) {
 		federation.UUID = myUuid
 
 		var count string
-		var sqlSelectQuery string = `select count(*) from organisation where uuid = "` + myUuid.String() + `"`
+		var sqlSelectQuery string = `select count(*) from organisation where uuid = '` + myUuid.String() + `'`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
 		log.Info(sqlSelectQuery)
 
@@ -923,7 +923,7 @@ func putDTOFederation(c *gin.Context) {
 		}
 
 		var count string
-		var sqlSelectQuery string = `select count(*) from organisation where uuid = "` + myUuid.String() + `"`
+		var sqlSelectQuery string = `select count(*) from organisation where uuid = '` + myUuid.String() + `'`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
 		log.Info(sqlSelectQuery)
 
@@ -940,10 +940,10 @@ func putDTOFederation(c *gin.Context) {
 						name, 
 						vkz,
 						kurzname)
-					VALUES ("` + federation.UUID.String() +
-					`", "` + federation.Name +
-					`", "` + federation.Fedration_NR +
-					`", "` + federation.NickName + `")
+					VALUES ('` + federation.UUID.String() +
+					`', '` + federation.Name +
+					`', '` + federation.Fedration_NR +
+					`', '` + federation.NickName + `')
 				`
 				log.Infoln(sqlInsertQuery)
 
@@ -960,10 +960,10 @@ func putDTOFederation(c *gin.Context) {
 
 				var sqlUpdateQuery string = `
 					UPDATE organisation set 
-						name = "` + federation.Name + `",
-						vkz = "` + federation.Fedration_NR + `",
-						kurzname = "` + federation.NickName + `"
-					WHERE uuid = "` + federation.UUID.String() + `"
+						name = '` + federation.Name + `',
+						vkz = '` + federation.Fedration_NR + `',
+						kurzname = '` + federation.NickName + `'
+					WHERE uuid = '` + federation.UUID.String() + `'
 				`
 				log.Infoln(sqlUpdateQuery)
 
@@ -1035,7 +1035,7 @@ func getDTOClub(c *gin.Context) {
 	club.UUID = myUuid
 
 	var count string
-	var sqlSelectQueryCount string = `select count(*) from organisation where uuid = "` + myUuid.String() + `"`
+	var sqlSelectQueryCount string = `select count(*) from organisation where uuid = '` + myUuid.String() + `'`
 	errDBExec := db.QueryRow(sqlSelectQueryCount).Scan(&count)
 	log.Info(sqlSelectQueryCount)
 
@@ -1145,7 +1145,7 @@ func putDTOClub(c *gin.Context) {
 		}
 
 		var count string
-		var sqlSelectQuery string = `select count(*) from organisation where uuid = "` + myUuid.String() + `"`
+		var sqlSelectQuery string = `select count(*) from organisation where uuid = '` + myUuid.String() + `'`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
 		log.Info(sqlSelectQuery)
 
@@ -1164,11 +1164,11 @@ func putDTOClub(c *gin.Context) {
 						vkz,
 						grundungsdatum,
 						istAbteilung)
-					VALUES ("` + club.UUID.String() +
-					`", "` + club.Name +
-					`", "` + club.Club_NR +
-					`", "` + CivilTimeToString(club.Entry_Date) +
-					`", ` + ClubTypeStringToistAbteilung(club.Club_Type) + `)
+					VALUES ('` + club.UUID.String() +
+					`', '` + club.Name +
+					`', '` + club.Club_NR +
+					`', '` + CivilTimeToString(club.Entry_Date) +
+					`', ` + ClubTypeStringToistAbteilung(club.Club_Type) + `)
 				`
 				log.Infoln(sqlInsertQuery)
 
@@ -1186,11 +1186,11 @@ func putDTOClub(c *gin.Context) {
 				// TODO, extend this please with missing attributes
 				var sqlUpdateQuery string = `
 					UPDATE organisation SET 
-						name = "` + club.Name + `",
-						vkz = "` + club.Club_NR + `",
-						grundungsdatum = "` + CivilTimeToString(club.Entry_Date) + `",
-						istAbteilung = "` + ClubTypeStringToistAbteilung(club.Club_Type) + `"
-					WHERE uuid = "` + club.UUID.String() + `"
+						name = '` + club.Name + `',
+						vkz = '` + club.Club_NR + `',
+						grundungsdatum = '` + CivilTimeToString(club.Entry_Date) + `',
+						istAbteilung = '` + ClubTypeStringToistAbteilung(club.Club_Type) + `'
+					WHERE uuid = '` + club.UUID.String() + `'
 				`
 				log.Infoln(sqlUpdateQuery)
 
@@ -1268,7 +1268,7 @@ func getDTOAddressFromTableAdressen(c *gin.Context) {
 			WHERE
 				adressen.id = adr.id_adressen AND
 				adr_art.id = adr.id_art AND
-				adressen.uuid = "` + addr_uuid + "\""
+				adressen.uuid = '` + addr_uuid + "'"
 
 	log.Infoln(sqlQuerySelect)
 
@@ -1389,7 +1389,7 @@ func getDTOAddressFromTableAdresse(c *gin.Context) {
 func updateAdrTableWithValue(addrValue string, id_address int, id_art int, c *gin.Context) {
 	var sqlUpdateQuery = `
 	UPDATE adr set 
-		wert = "` + addrValue + `"
+		wert = '` + addrValue + `'
 	WHERE id_adressen = ` + strconv.Itoa(id_address) + ` AND
 		id_art = ` + strconv.Itoa(id_art)
 	log.Infoln(sqlUpdateQuery)
@@ -1498,14 +1498,14 @@ func updateDTOAddressOnTableAdresse(c *gin.Context) {
 	updateSQLStr := `
 	UPDATE adresse SET 
 		land = ` + strconv.Itoa(idOfCountry) + `, 
-		plz = "` + addressOfPerson.ZIP + `", 
-		ort = "` + addressOfPerson.City + `", 
-		strasse = "` + addressOfPerson.Street + `", 
-		tel1 = "` + addressOfPerson.Phone_Home + `", 
-		tel2 = "` + addressOfPerson.Phone_Work + `", 
-		tel3 = "` + addressOfPerson.Phone_Mobile + `", 
-		email1 = "` + addressOfPerson.Email + `", 
-		email2 = "` + addressOfPerson.Email2 + `" 
+		plz = '` + addressOfPerson.ZIP + `', 
+		ort = '` + addressOfPerson.City + `', 
+		strasse = '` + addressOfPerson.Street + `', 
+		tel1 = '` + addressOfPerson.Phone_Home + `', 
+		tel2 = '` + addressOfPerson.Phone_Work + `', 
+		tel3 = '` + addressOfPerson.Phone_Mobile + `', 
+		email1 = '` + addressOfPerson.Email + `', 
+		email2 = '` + addressOfPerson.Email2 + `' 
 	WHERE id = ` + strconv.Itoa(id) + `
 	`
 	log.Infoln(updateSQLStr)
@@ -1561,17 +1561,17 @@ func insertDTOAddressIntoTableAdresse(c *gin.Context) {
 		email1,
 		email2
 		)
-	VALUES ("` + addressOfPerson.UUID.String() +
-		`", ` + strconv.Itoa(idOfCountry) +
-		`, "` + addressOfPerson.ZIP +
-		`", "` + addressOfPerson.City +
-		`", "` + addressOfPerson.Street +
-		`", "` + addressOfPerson.Phone_Home +
-		`", "` + addressOfPerson.Phone_Work +
-		`", "` + addressOfPerson.Phone_Mobile +
-		`", "` + addressOfPerson.Email +
-		`", "` + addressOfPerson.Email2 +
-		`")`
+	VALUES ('` + addressOfPerson.UUID.String() +
+		`', ` + strconv.Itoa(idOfCountry) +
+		`, '` + addressOfPerson.ZIP +
+		`', '` + addressOfPerson.City +
+		`', '` + addressOfPerson.Street +
+		`', '` + addressOfPerson.Phone_Home +
+		`', '` + addressOfPerson.Phone_Work +
+		`', '` + addressOfPerson.Phone_Mobile +
+		`', '` + addressOfPerson.Email +
+		`', '` + addressOfPerson.Email2 +
+		`')`
 
 	log.Infoln(updateSQLStr)
 
@@ -1614,7 +1614,7 @@ func getDTOPlayerLicense(c *gin.Context) {
 		playerlicense.UUID = myUuid
 
 		var count string
-		var sqlSelectQueryCount string = `select count(*) from mitgliedschaft where uuid = "` + myUuid.String() + `"`
+		var sqlSelectQueryCount string = `select count(*) from mitgliedschaft where uuid = '` + myUuid.String() + `'`
 		errDBExec := db.QueryRow(sqlSelectQueryCount).Scan(&count)
 		log.Info(sqlSelectQueryCount)
 
@@ -1642,7 +1642,7 @@ func getDTOPlayerLicense(c *gin.Context) {
 				person
 			WHERE mitgliedschaft.organisation = organisation.id AND 
 				mitgliedschaft.person = person.id AND
-				mitgliedschaft.uuid = "` + license_uuid + `"`
+				mitgliedschaft.uuid = '` + license_uuid + `'`
 		log.Infoln(sqlSelectQuery)
 
 		var memberFrom string
@@ -1714,7 +1714,7 @@ func getUUIDFromID(tableName string, id int) (rUuid uuid.UUID, rErr error) {
 }
 
 func getIDFromUUID(tableName string, myUuid uuid.UUID) (id int, rErr error) {
-	var sqlQuerySelectID = "select id from " + tableName + " where uuid = \"" + myUuid.String() + "\""
+	var sqlQuerySelectID = "select id from " + tableName + " where uuid = '" + myUuid.String() + "'"
 	var tmpId int
 	rErr = db.QueryRow(sqlQuerySelectID).Scan(&tmpId)
 	return tmpId, rErr
@@ -1749,7 +1749,7 @@ func putDTOPlayerLicense(c *gin.Context) {
 		}
 
 		var count string
-		var sqlSelectQuery string = `select count(*) from mitgliedschaft where uuid = "` + myUuid.String() + `"`
+		var sqlSelectQuery string = `select count(*) from mitgliedschaft where uuid = '` + myUuid.String() + `'`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
 		log.Info(sqlSelectQuery)
 
@@ -1774,13 +1774,13 @@ func putDTOPlayerLicense(c *gin.Context) {
 						bis,
 						stat1,
 						spielernummer)
-					VALUES ("` + playerlicense.UUID.String() +
-					`", ` + strconv.Itoa(person_id) +
-					`, "` + strconv.Itoa(organisation_id) +
-					`", "` + fromStr +
-					`", "` + untilStr +
-					`", "` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) +
-					`", ` + strconv.Itoa(playerlicense.Member_Nr) + `)
+					VALUES ('` + playerlicense.UUID.String() +
+					`', ` + strconv.Itoa(person_id) +
+					`, '` + strconv.Itoa(organisation_id) +
+					`', '` + fromStr +
+					`', '` + untilStr +
+					`', '` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) +
+					`', ` + strconv.Itoa(playerlicense.Member_Nr) + `)
 				`
 				log.Infoln(sqlInsertQuery)
 
@@ -1799,11 +1799,11 @@ func putDTOPlayerLicense(c *gin.Context) {
 					UPDATE mitgliedschaft set 
 						person = ` + strconv.Itoa(person_id) + `,
 						organisation = ` + strconv.Itoa(organisation_id) + `,
-						von = "` + fromStr + `",
-						bis = "` + untilStr + `",
+						von = '` + fromStr + `',
+						bis = '` + untilStr + `',
 						stat1 = ` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) + `,
 						spielernummer = ` + strconv.Itoa(playerlicense.Member_Nr) + `
-					WHERE uuid = "` + playerlicense.UUID.String() + `"
+					WHERE uuid = '` + playerlicense.UUID.String() + `'
 				`
 				log.Infoln(sqlUpdateQuery)
 
@@ -1842,7 +1842,7 @@ func getDTOClubOfficial(c *gin.Context) {
 		clubofficial.UUID = myUuid
 
 		var count string
-		var sqlSelectQueryCount string = `select count(*) from funktion where uuid = "` + myUuid.String() + `"`
+		var sqlSelectQueryCount string = `select count(*) from funktion where uuid = '` + myUuid.String() + `'`
 		errDBExec := db.QueryRow(sqlSelectQueryCount).Scan(&count)
 		log.Info(sqlSelectQueryCount)
 
@@ -1869,7 +1869,7 @@ func getDTOClubOfficial(c *gin.Context) {
 				person
 			WHERE funktion.organisation = organisation.id AND 
 				funktion.person = person.id AND
-				funktion.uuid = "` + official_uuid + `"`
+				funktion.uuid = '` + official_uuid + `'`
 		log.Infoln(sqlSelectQuery)
 
 		var tmpClubUuid string
@@ -1956,7 +1956,7 @@ func putDTOClubOfficial(c *gin.Context) {
 		}
 
 		var count string
-		var sqlSelectQuery string = `select count(*) from funktion where uuid = "` + myUuid.String() + `"`
+		var sqlSelectQuery string = `select count(*) from funktion where uuid = '` + myUuid.String() + `'`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
 		log.Infoln(sqlSelectQuery)
 
@@ -1989,12 +1989,12 @@ func putDTOClubOfficial(c *gin.Context) {
 						funktionsalias,
 						von,
 						bis)
-					VALUES ("` + clubofficial.UUID.String() +
-					`", ` + strconv.Itoa(organisation_id) +
+					VALUES ('` + clubofficial.UUID.String() +
+					`', ` + strconv.Itoa(organisation_id) +
 					`,` + strconv.Itoa(person_id) +
-					`, "` + clubofficial.Role_Name +
-					`", "` + fromStr +
-					`", "` + untilStr + `")
+					`, '` + clubofficial.Role_Name +
+					`', '` + fromStr +
+					`', '` + untilStr + `')
 				`
 				log.Infoln(sqlInsertQuery)
 
@@ -2013,10 +2013,10 @@ func putDTOClubOfficial(c *gin.Context) {
 					UPDATE funktion set 
 						organisation = ` + strconv.Itoa(organisation_id) + `,
 						person = ` + strconv.Itoa(person_id) + `,
-						funktionsalias = "` + clubofficial.Role_Name + `",
-						von = "` + fromStr + `",
-						bis = "` + untilStr + `"
-					WHERE uuid = "` + clubofficial.UUID.String() + `"
+						funktionsalias = '` + clubofficial.Role_Name + `',
+						von = '` + fromStr + `',
+						bis = '` + untilStr + `'
+					WHERE uuid = '` + clubofficial.UUID.String() + `'
 				`
 				log.Infoln(sqlUpdateQuery)
 
