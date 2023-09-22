@@ -1424,11 +1424,7 @@ func updateDTOAddressOnTableAdressen(c *gin.Context) {
 		return
 	}
 
-	_, err = validateDTOAddress(addressOfClub)
-	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
-		return
-	}
+	validateDTOAddress, _ := validateDTOAddress(addressOfClub)
 
 	if strings.Compare(addr_uuid, addressOfClub.UUID.String()) != 0 {
 		c.AbortWithStatusJSON(400, "uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfClub.UUID.String())
@@ -1450,7 +1446,11 @@ func updateDTOAddressOnTableAdressen(c *gin.Context) {
 	updateAdrTableWithValue(fmt.Sprintf("%v", addressOfClub.Latitude), tmpIdAddress, 17, c)
 	updateAdrTableWithValue(fmt.Sprintf("%v", addressOfClub.Longitude), tmpIdAddress, 18, c)
 
-	c.JSON(200, addressOfClub)
+	if validateDTOAddress {
+		c.JSON(200, addressOfClub)
+	} else {
+		c.JSON(202, addressOfClub)
+	}
 }
 
 func getCountryIdByNameAKABezeichnung(countryNameAKABezeichnung string) (result int, err error) {
@@ -1474,11 +1474,7 @@ func updateDTOAddressOnTableAdresse(c *gin.Context) {
 		return
 	}
 
-	_, err = validateDTOAddress(addressOfPerson)
-	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
-		return
-	}
+	validateDTOAddress, _ := validateDTOAddress(addressOfPerson)
 
 	if strings.Compare(addr_uuid, addressOfPerson.UUID.String()) != 0 {
 		c.AbortWithStatusJSON(400, "uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfPerson.UUID.String())
@@ -1519,7 +1515,11 @@ func updateDTOAddressOnTableAdresse(c *gin.Context) {
 		c.AbortWithStatusJSON(400, err4.Error())
 		return
 	} else {
-		c.JSON(200, addressOfPerson)
+		if validateDTOAddress {
+			c.JSON(200, addressOfPerson)
+		} else {
+			c.JSON(202, addressOfPerson)
+		}
 		return
 	}
 }
@@ -1534,11 +1534,7 @@ func insertDTOAddressIntoTableAdresse(c *gin.Context) {
 		return
 	}
 
-	_, err = validateDTOAddress(addressOfPerson)
-	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
-		return
-	}
+	validateDTOAddress, _ := validateDTOAddress(addressOfPerson)
 
 	if strings.Compare(addr_uuid, addressOfPerson.UUID.String()) != 0 {
 		c.AbortWithStatusJSON(400, "uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfPerson.UUID.String())
@@ -1584,7 +1580,11 @@ func insertDTOAddressIntoTableAdresse(c *gin.Context) {
 		c.AbortWithStatusJSON(400, err4.Error())
 		return
 	} else {
-		c.JSON(200, addressOfPerson)
+		if validateDTOAddress {
+			c.JSON(200, addressOfPerson)
+		} else {
+			c.JSON(202, addressOfPerson)
+		}
 		return
 	}
 }
