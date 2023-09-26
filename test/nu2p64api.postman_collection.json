@@ -70,7 +70,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"FN\",\r\n    \"lastname\": \"LN\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": \"1\",\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
+									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"FN\",\r\n    \"lastname\": \"LN\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": false,\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
 								},
 								"url": {
 									"raw": "{{base_url}}/persons/deadbeef-dead-11ed-927b-005056054f4e",
@@ -139,7 +139,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"FN2\",\r\n    \"lastname\": \"LN2\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": \"1\",\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
+									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"FN2\",\r\n    \"lastname\": \"LN2\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": false,\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
 								},
 								"url": {
 									"raw": "{{base_url}}/persons/deadbeef-dead-11ed-927b-005056054f4e",
@@ -1099,7 +1099,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"FN\",\r\n    \"lastname\": \"LN\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": \"1\",\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
+									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"FN\",\r\n    \"lastname\": \"LN\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": false,\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
 								},
 								"url": {
 									"raw": "{{base_url}}/persons/deadbeef-dead-11ed-927b-005056054f4e",
@@ -1545,7 +1545,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"FN\",\r\n    \"lastname\": \"LN\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": \"1\",\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
+									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"FN\",\r\n    \"lastname\": \"LN\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": false,\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
 								},
 								"url": {
 									"raw": "{{base_url}}/persons/deadbeef-dead-11ed-927b-005056054f4e",
@@ -1932,7 +1932,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "https://portal.svw.info:3030/api",
+			"value": "https://test.svwt.info:3030/api",
 			"type": "string"
 		}
 	]

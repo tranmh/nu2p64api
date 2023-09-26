@@ -468,7 +468,7 @@ type DTOPerson struct {
 	BirthName     string    `json:"birthname"` // TODO: no column in Mivis, so ignore
 	Dead          int       `json:"dead"`
 	Nation        string    `json:"nation"`
-	Privacy_State string    `json:"privacy-state"` // datenschutz: 1 = zugestimmt.
+	Privacy_State bool      `json:"privacy-state"` // datenschutz: 1 = zugestimmt.
 	Remarks       string    `json:"remarks"`
 	FIDE_Title    string    `json:"fide-title"` // TODO: no column in Mivis, so ignore
 	FIDE_Nation   string    `json:"fide-nation"`
@@ -592,6 +592,7 @@ func getDTOPerson(c *gin.Context) {
 		person.UUID = myUuid
 		var tmpAdresseID int
 		var tmpBirthDate string
+		var tmpPrivacyState string
 
 		sqlSelectQuery := `
 		select ifnull(person.name, ''), 
@@ -622,7 +623,7 @@ func getDTOPerson(c *gin.Context) {
 				&person.BirthPlace,
 				&person.Dead,
 				&person.Nation,
-				&person.Privacy_State, // TODO: NULL, 0 or 1, 1 means accepted?
+				&tmpPrivacyState, // TODO: NULL, 0 or 1, 1 means accepted?
 				&person.Remarks,
 				// we do not have FIDE_Title, so ignore
 				&person.FIDE_Nation,
@@ -635,6 +636,15 @@ func getDTOPerson(c *gin.Context) {
 			person.Sex = "male"
 		} else {
 			c.AbortWithStatusJSON(500, errors.New("neither female=0 nor male=1 - broken data with sex aka person.geschlecht column? sex:"+person.Sex))
+			return
+		}
+
+		if strings.Compare(tmpPrivacyState, "0") == 0 {
+			person.Privacy_State = false
+		} else if strings.Compare(tmpPrivacyState, "1") == 0 {
+			person.Privacy_State = false
+		} else {
+			c.AbortWithStatusJSON(500, errors.New("neither privacy_state=0 nor privacy_state=1 - broken data with privcay_state aka column person.datenschutz: "+tmpPrivacyState))
 			return
 		}
 
@@ -768,6 +778,11 @@ func putDTOPerson(c *gin.Context) {
 				person.FIDE_Id = "NULL"
 			}
 
+			var privacy_state_int = 0
+			if person.Privacy_State {
+				privacy_state_int = 1
+			}
+
 			if strings.Compare(count, "0") == 0 { // insert
 
 				var sqlInsertQuery string = `
@@ -796,7 +811,7 @@ func putDTOPerson(c *gin.Context) {
 					`', '` + person.BirthPlace +
 					`', ` + strconv.Itoa(person.Dead) +
 					`, '` + person.Nation +
-					`', '` + person.Privacy_State +
+					`', '` + strconv.Itoa(privacy_state_int) +
 					`', '` + person.Remarks +
 					`', '` + person.FIDE_Nation +
 					`',` + person.FIDE_Id +
@@ -823,7 +838,7 @@ func putDTOPerson(c *gin.Context) {
 						geschlecht = '` + strconv.Itoa(int(sex)) + `',
 						geburtsdatum = '` + birthday + `',
 						nation = '` + person.Nation + `',
-						datenschutz = '` + person.Privacy_State + `',
+						datenschutz = '` + strconv.Itoa(privacy_state_int) + `',
 						nationfide = '` + person.FIDE_Nation + `',
 						idfide = ` + person.FIDE_Id + `
 					WHERE uuid = '` + person.UUID.String() + `'
