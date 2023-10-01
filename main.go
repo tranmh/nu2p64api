@@ -1474,6 +1474,7 @@ func getCountryIdByNameAKABezeichnung(countryNameAKABezeichnung string) (result 
 	}
 
 	var selectQueryStr = "SELECT id FROM land where bezeichnung like '" + countryNameAKABezeichnung + "' OR ioc like '" + countryNameAKABezeichnung + "'"
+	log.Infoln(selectQueryStr)
 	var tmpId int
 	rErr := db.QueryRow(selectQueryStr).Scan(&tmpId)
 	return tmpId, rErr
@@ -1559,7 +1560,7 @@ func insertDTOAddressIntoTableAdresse(c *gin.Context) {
 	idOfCountry, err3 := getCountryIdByNameAKABezeichnung(addressOfPerson.Country)
 
 	if err3 != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		c.AbortWithStatusJSON(400, err3.Error())
 		return
 	}
 
