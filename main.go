@@ -769,7 +769,7 @@ func putDTOPerson(c *gin.Context) {
 			var title = convertTitleToTitleID(person.Title)
 			var sex = getSex(person.Sex)
 			var birthday = strconv.Itoa(time.Time(person.BirthDate).Year()) + "-" + strconv.Itoa(int(time.Time(person.BirthDate).Month())) + "-" + strconv.Itoa(time.Time(person.BirthDate).Day())
-			var addressID, errGetIDFromUUID = getIDFromUUID("adresse", person.AddressUUID)
+			var addressID, errGetIDFromUUID = getIDFromUUIDOrCreateDummyData("adresse", person.AddressUUID)
 			if errGetIDFromUUID != nil {
 				c.AbortWithStatusJSON(400, errGetIDFromUUID.Error()+" UUID was not found in table adresse")
 				return
@@ -1446,7 +1446,7 @@ func updateDTOAddressOnTableAdressen(c *gin.Context) {
 		return
 	}
 
-	var tmpIdAddress, _ = getIDFromUUID("adressen", addressOfClub.UUID)
+	var tmpIdAddress, _ = getIDFromUUIDOrCreateDummyData("adressen", addressOfClub.UUID)
 
 	updateAdrTableWithValue(addressOfClub.Street, tmpIdAddress, 2, c)
 	updateAdrTableWithValue(addressOfClub.ZIP, tmpIdAddress, 3, c)
@@ -1497,7 +1497,7 @@ func updateDTOAddressOnTableAdresse(c *gin.Context) {
 		return
 	}
 
-	id, err2 := getIDFromUUID("adresse", addressOfPerson.UUID)
+	id, err2 := getIDFromUUIDOrCreateDummyData("adresse", addressOfPerson.UUID)
 
 	if err2 != nil {
 		c.AbortWithStatusJSON(400, err.Error())
@@ -1730,10 +1730,29 @@ func getUUIDFromID(tableName string, id int) (rUuid uuid.UUID, rErr error) {
 }
 
 func getIDFromUUID(tableName string, myUuid uuid.UUID) (id int, rErr error) {
-	var sqlQuerySelectID = "select id from " + tableName + " where uuid = '" + myUuid.String() + "'"
+	var sqlQuerySelectID = "SELECT id FROM " + tableName + " WHERE uuid = '" + myUuid.String() + "'"
 	var tmpId int
+	log.Infoln(sqlQuerySelectID)
 	rErr = db.QueryRow(sqlQuerySelectID).Scan(&tmpId)
 	return tmpId, rErr
+}
+
+func getIDFromUUIDOrCreateDummyData(tableName string, myUuid uuid.UUID) (id int, rErr error) {
+	id, rErr = getIDFromUUID(tableName, myUuid)
+
+	if rErr == nil {
+		return id, rErr
+	} else {
+		var sqlInsertDummyData = "INSERT INTO " + tableName + " (uuid) VALUES ('" + myUuid.String() + "')"
+		log.Infoln(sqlInsertDummyData)
+		_, rErr = db.Exec(sqlInsertDummyData)
+
+		if rErr == nil {
+			return getIDFromUUID(tableName, myUuid)
+		} else {
+			return -1, rErr
+		}
+	}
 }
 
 func putDTOPlayerLicense(c *gin.Context) {
@@ -1774,8 +1793,8 @@ func putDTOPlayerLicense(c *gin.Context) {
 			return
 		} else {
 
-			var person_id, _ = getIDFromUUID("person", playerlicense.Person_UUID)
-			var organisation_id, _ = getIDFromUUID("organisation", playerlicense.Club_UUID)
+			var person_id, _ = getIDFromUUIDOrCreateDummyData("person", playerlicense.Person_UUID)
+			var organisation_id, _ = getIDFromUUIDOrCreateDummyData("organisation", playerlicense.Club_UUID)
 			var fromStr = time.Time(playerlicense.LicenseValidFrom).Format("2006-01-02")
 			var untilStr = time.Time(playerlicense.LicenseValidUntil).Format("2006-01-02")
 
@@ -1981,12 +2000,12 @@ func putDTOClubOfficial(c *gin.Context) {
 			return
 		} else {
 
-			var person_id, errPersonId = getIDFromUUID("person", clubofficial.Person_UUID)
+			var person_id, errPersonId = getIDFromUUIDOrCreateDummyData("person", clubofficial.Person_UUID)
 			if errPersonId != nil {
 				c.AbortWithStatusJSON(400, errPersonId.Error())
 				return
 			}
-			var organisation_id, errOrganisationId = getIDFromUUID("organisation", clubofficial.Club_UUID)
+			var organisation_id, errOrganisationId = getIDFromUUIDOrCreateDummyData("organisation", clubofficial.Club_UUID)
 			if errOrganisationId != nil {
 				c.AbortWithStatusJSON(400, errOrganisationId.Error())
 				return

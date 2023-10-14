@@ -13,6 +13,41 @@
 					"name": "CRUD",
 					"item": [
 						{
+							"name": "Put Person X",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"FN\",\r\n    \"lastname\": \"LN\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": false,\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/persons/deadbeef-dead-11ed-927b-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"persons",
+										"deadbeef-dead-11ed-927b-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Create new address",
 							"event": [
 								{
@@ -45,41 +80,6 @@
 									"path": [
 										"addresses",
 										"44b35481-dead-dead-beef-005056054f4e"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Put Person X",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"firstname\": \"FN\",\r\n    \"lastname\": \"LN\",\r\n    \"title\": \"Prof.\",\r\n    \"gender\": \"\",\r\n    \"sex\": \"male\",\r\n    \"address-uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"birthdate\": \"1982-08-02\",\r\n    \"birthplace\": \"Hanoi\",\r\n    \"birthname\": \"\",\r\n    \"dead\": 0,\r\n    \"nation\": \"GER\",\r\n    \"privacy-state\": false,\r\n    \"remarks\": \"\",\r\n    \"fide-title\": \"\",\r\n    \"fide-nation\": \"VIE\",\r\n    \"fide-id\": \"\"\r\n}"
-								},
-								"url": {
-									"raw": "{{base_url}}/persons/deadbeef-dead-11ed-927b-005056054f4e",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"persons",
-										"deadbeef-dead-11ed-927b-005056054f4e"
 									]
 								}
 							},
@@ -1042,7 +1042,7 @@
 							"response": []
 						},
 						{
-							"name": "Create new address",
+							"name": "Create new club official",
 							"event": [
 								{
 									"listen": "test",
@@ -1052,7 +1052,7 @@
 											"    pm.response.to.have.status(200);\r",
 											"});\r",
 											"pm.test(\"Body matches string\", function () {\r",
-											"    pm.expect(pm.response.text()).to.include(\"Karlstr\");\r",
+											"    pm.expect(pm.response.text()).to.include(\"2005-05-07\");\r",
 											"});"
 										],
 										"type": "text/javascript"
@@ -1064,16 +1064,16 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"name\": \"\",\r\n    \"name2\": \"\",\r\n    \"street\": \"Vordere Karlstr. 72\",\r\n    \"zip\": \"73033\",\r\n    \"city\": \"Göppingen\",\r\n    \"country\": \"Deutschland\",\r\n    \"email\": \"456@de\",\r\n    \"email2\": \"\",\r\n    \"www\": \"\",\r\n    \"phone-mobile\": \"0176 24235453\",\r\n    \"phone-home\": \"123\",\r\n    \"phone-work\": \"\",\r\n    \"longitude\": 0,\r\n    \"latitude\": 0\r\n}"
+									"raw": "{\r\n    \"uuid\": \"63598d7e-beef-beef-dead-005056054f4e\",\r\n    \"club-uuid\": \"6e358ea2-dead-beef-dead-005056054f4e\",\r\n    \"member-uuid\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"person-uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"role-name\": \"\",\r\n    \"valid-from\": \"2005-05-07\",\r\n    \"valid-until\": \"0001-01-01\"\r\n}"
 								},
 								"url": {
-									"raw": "{{base_url}}/addresses/44b35481-dead-dead-beef-005056054f4e",
+									"raw": "{{base_url}}/club-officials/63598d7e-beef-beef-dead-005056054f4e",
 									"host": [
 										"{{base_url}}"
 									],
 									"path": [
-										"addresses",
-										"44b35481-dead-dead-beef-005056054f4e"
+										"club-officials",
+										"63598d7e-beef-beef-dead-005056054f4e"
 									]
 								}
 							},
@@ -1115,6 +1115,44 @@
 							"response": []
 						},
 						{
+							"name": "Create new address",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"Karlstr\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"44b35481-dead-dead-beef-005056054f4e\",\r\n    \"name\": \"\",\r\n    \"name2\": \"\",\r\n    \"street\": \"Vordere Karlstr. 72\",\r\n    \"zip\": \"73033\",\r\n    \"city\": \"Göppingen\",\r\n    \"country\": \"Deutschland\",\r\n    \"email\": \"456@de\",\r\n    \"email2\": \"\",\r\n    \"www\": \"\",\r\n    \"phone-mobile\": \"0176 24235453\",\r\n    \"phone-home\": \"123\",\r\n    \"phone-work\": \"\",\r\n    \"longitude\": 0,\r\n    \"latitude\": 0\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/addresses/44b35481-dead-dead-beef-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"addresses",
+										"44b35481-dead-dead-beef-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Create new club",
 							"event": [
 								{
@@ -1144,44 +1182,6 @@
 									"path": [
 										"clubs",
 										"6e358ea2-dead-beef-dead-005056054f4e"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Create new club official",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
-											"});\r",
-											"pm.test(\"Body matches string\", function () {\r",
-											"    pm.expect(pm.response.text()).to.include(\"2005-05-07\");\r",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"uuid\": \"63598d7e-beef-beef-dead-005056054f4e\",\r\n    \"club-uuid\": \"6e358ea2-dead-beef-dead-005056054f4e\",\r\n    \"member-uuid\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"person-uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"role-name\": \"\",\r\n    \"valid-from\": \"2005-05-07\",\r\n    \"valid-until\": \"0001-01-01\"\r\n}"
-								},
-								"url": {
-									"raw": "{{base_url}}/club-officials/63598d7e-beef-beef-dead-005056054f4e",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"club-officials",
-										"63598d7e-beef-beef-dead-005056054f4e"
 									]
 								}
 							},
@@ -1526,6 +1526,44 @@
 					"name": "CRUD",
 					"item": [
 						{
+							"name": "Create new player license",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Body matches string\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"2020-07-02\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"uuid\": \"b6fa157d-beef-beef-dead-005056054f4e\",\r\n    \"club-uuid\": \"6e358ea2-dead-beef-dead-005056054f4e\",\r\n    \"person-uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"request-date\": \"2023-09-03\",\r\n    \"license-valid-from\": \"2020-07-02\",\r\n    \"license-valid-until\": \"0001-01-01\",\r\n    \"license-state\": \"ACTIVE\",\r\n    \"member-nr\": 297\r\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/player-licences/b6fa157d-beef-beef-dead-005056054f4e",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"player-licences",
+										"b6fa157d-beef-beef-dead-005056054f4e"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Put Person X",
 							"event": [
 								{
@@ -1590,44 +1628,6 @@
 									"path": [
 										"clubs",
 										"6e358ea2-dead-beef-dead-005056054f4e"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Create new player license",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
-											"});\r",
-											"pm.test(\"Body matches string\", function () {\r",
-											"    pm.expect(pm.response.text()).to.include(\"2020-07-02\");\r",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"uuid\": \"b6fa157d-beef-beef-dead-005056054f4e\",\r\n    \"club-uuid\": \"6e358ea2-dead-beef-dead-005056054f4e\",\r\n    \"person-uuid\": \"deadbeef-dead-11ed-927b-005056054f4e\",\r\n    \"request-date\": \"2023-09-03\",\r\n    \"license-valid-from\": \"2020-07-02\",\r\n    \"license-valid-until\": \"0001-01-01\",\r\n    \"license-state\": \"ACTIVE\",\r\n    \"member-nr\": 297\r\n}"
-								},
-								"url": {
-									"raw": "{{base_url}}/player-licences/b6fa157d-beef-beef-dead-005056054f4e",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"player-licences",
-										"b6fa157d-beef-beef-dead-005056054f4e"
 									]
 								}
 							},
@@ -1932,7 +1932,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "https://test.svwt.info:3030/api",
+			"value": "https://test.svwt.info:4040/api",
 			"type": "string"
 		}
 	]
