@@ -16,3 +16,7 @@ mysql> commit;
 mysql> ALTER TABLE adressen ADD COLUMN uuid varchar(36) after ID;
 mysql> UPDATE adressen SET uuid=(SELECT uuid());
 mysql> commit;
+
+CREATE UNIQUE INDEX adresse_uuid ON adresse ( uuid );
+CREATE UNIQUE INDEX person_uuid ON person ( uuid );
+CREATE UNIQUE INDEX mitgliedschaft_uuid ON mitgliedschaft ( uuid );
