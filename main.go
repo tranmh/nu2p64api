@@ -140,7 +140,7 @@ func registerLoginUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "validated!"})
+	CJSON(c, http.StatusOK, gin.H{"message": "validated!"})
 
 }
 
@@ -237,7 +237,7 @@ func loginUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	CJSON(c, http.StatusOK, gin.H{"token": token})
 
 }
 
@@ -389,13 +389,29 @@ func ClubTypeStringToistAbteilung(ct string) string {
 
 // -----------------------------------------------------------------------------
 
+func ReplaceSpecialCharacters(myString string) string {
+	myString = strings.ReplaceAll(myString, "\xC2", "")
+	myString = strings.ReplaceAll(myString, "\x84", "")
+	myString = strings.ReplaceAll(myString, "\u0084", "")
+	myString = strings.ReplaceAll(myString, "\x9E", "")
+	myString = strings.ReplaceAll(myString, "\u009e", "")
+
+	return myString
+}
+
 func EscapeTick(input string) string {
-	return strings.Replace(input, "'", "\\'", -1)
+	input = ReplaceSpecialCharacters(input)
+	return strings.ReplaceAll(input, "'", "\\'")
 }
 
 func AbortWithStatusJSON(c *gin.Context, code int, jsonObj any) {
 	fmt.Printf("ERROR code:%d jsonObj:%v \n", code, jsonObj)
 	c.AbortWithStatusJSON(code, jsonObj)
+}
+
+func CJSON(c *gin.Context, code int, jsonObj any) {
+	fmt.Printf("PASS code:%d jsonObj:%v \n", code, jsonObj)
+	c.JSON(code, jsonObj)
 }
 
 // -----------------------------------------------------------------------------
@@ -678,7 +694,7 @@ func getDTOPerson(c *gin.Context) {
 			AbortWithStatusJSON(c, 500, err.Error())
 			return
 		} else {
-			c.JSON(200, person)
+			CJSON(c, 200, person)
 			return
 		}
 	} else {
@@ -705,7 +721,7 @@ func deleteDTOGeneric(c *gin.Context, uuidParam string, deleteSQLStr string) {
 				AbortWithStatusJSON(c, 404, rowsAffected)
 				return
 			} else if rowsAffected == 1 {
-				c.JSON(200, rowsAffected)
+				CJSON(c, 200, rowsAffected)
 				return
 			} else {
 				AbortWithStatusJSON(c, 500, rowsAffected)
@@ -836,7 +852,7 @@ func putDTOPerson(c *gin.Context) {
 					AbortWithStatusJSON(c, 400, err3.Error())
 					return
 				} else {
-					c.JSON(200, person)
+					CJSON(c, 200, person)
 					return
 				}
 			} else if strings.Compare(count, "1") == 0 { // update
@@ -861,7 +877,7 @@ func putDTOPerson(c *gin.Context) {
 					AbortWithStatusJSON(c, 400, err4.Error())
 					return
 				} else {
-					c.JSON(200, person)
+					CJSON(c, 200, person)
 					return
 				}
 			} else {
@@ -911,7 +927,7 @@ func getDTOFederation(c *gin.Context) {
 			AbortWithStatusJSON(c, 500, err.Error())
 			return
 		} else {
-			c.JSON(200, federation)
+			CJSON(c, 200, federation)
 			return
 		}
 	} else {
@@ -979,7 +995,7 @@ func putDTOFederation(c *gin.Context) {
 					AbortWithStatusJSON(c, 400, err3.Error())
 					return
 				} else {
-					c.JSON(200, federation)
+					CJSON(c, 200, federation)
 					return
 				}
 			} else if strings.Compare(count, "1") == 0 { // update
@@ -998,7 +1014,7 @@ func putDTOFederation(c *gin.Context) {
 					AbortWithStatusJSON(c, 400, err4.Error())
 					return
 				} else {
-					c.JSON(200, federation)
+					CJSON(c, 200, federation)
 					return
 				}
 			} else {
@@ -1140,7 +1156,7 @@ func getDTOClub(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, club)
+	CJSON(c, 200, club)
 }
 
 func putDTOClub(c *gin.Context) {
@@ -1204,7 +1220,7 @@ func putDTOClub(c *gin.Context) {
 					AbortWithStatusJSON(c, 400, err3.Error())
 					return
 				} else {
-					c.JSON(200, club)
+					CJSON(c, 200, club)
 					return
 				}
 			} else if strings.Compare(count, "1") == 0 { // update
@@ -1225,7 +1241,7 @@ func putDTOClub(c *gin.Context) {
 					AbortWithStatusJSON(c, 400, err4.Error())
 					return
 				} else {
-					c.JSON(200, club)
+					CJSON(c, 200, club)
 					return
 				}
 			} else {
@@ -1365,7 +1381,7 @@ func getDTOAddressFromTableAdressen(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, address)
+	CJSON(c, 200, address)
 }
 
 func getDTOAddressFromTableAdresse(c *gin.Context) {
@@ -1408,7 +1424,7 @@ func getDTOAddressFromTableAdresse(c *gin.Context) {
 		AbortWithStatusJSON(c, 500, err.Error())
 		return
 	} else {
-		c.JSON(200, address)
+		CJSON(c, 200, address)
 	}
 }
 
@@ -1473,9 +1489,9 @@ func updateDTOAddressOnTableAdressen(c *gin.Context) {
 	updateAdrTableWithValue(fmt.Sprintf("%v", addressOfClub.Longitude), tmpIdAddress, 18, c)
 
 	if validateDTOAddress {
-		c.JSON(200, addressOfClub)
+		CJSON(c, 200, addressOfClub)
 	} else {
-		c.JSON(202, addressOfClub)
+		CJSON(c, 202, addressOfClub)
 	}
 }
 
@@ -1543,9 +1559,9 @@ func updateDTOAddressOnTableAdresse(c *gin.Context) {
 		return
 	} else {
 		if validateDTOAddress {
-			c.JSON(200, addressOfPerson)
+			CJSON(c, 200, addressOfPerson)
 		} else {
-			c.JSON(202, addressOfPerson)
+			CJSON(c, 202, addressOfPerson)
 		}
 		return
 	}
@@ -1608,9 +1624,9 @@ func insertDTOAddressIntoTableAdresse(c *gin.Context) {
 		return
 	} else {
 		if validateDTOAddress {
-			c.JSON(200, addressOfPerson)
+			CJSON(c, 200, addressOfPerson)
 		} else {
-			c.JSON(202, addressOfPerson)
+			CJSON(c, 202, addressOfPerson)
 		}
 		return
 	}
@@ -1716,7 +1732,7 @@ func getDTOPlayerLicense(c *gin.Context) {
 			return
 		}
 
-		c.JSON(200, playerlicense)
+		CJSON(c, 200, playerlicense)
 
 	} else {
 		AbortWithStatusJSON(c, 400, "uuid is not valid: "+license_uuid)
@@ -1836,7 +1852,7 @@ func putDTOPlayerLicense(c *gin.Context) {
 					AbortWithStatusJSON(c, 400, err3.Error())
 					return
 				} else {
-					c.JSON(200, playerlicense)
+					CJSON(c, 200, playerlicense)
 					return
 				}
 			} else if strings.Compare(count, "1") == 0 { // update
@@ -1858,7 +1874,7 @@ func putDTOPlayerLicense(c *gin.Context) {
 					AbortWithStatusJSON(c, 400, err4.Error())
 					return
 				} else {
-					c.JSON(200, playerlicense)
+					CJSON(c, 200, playerlicense)
 					return
 				}
 			} else {
@@ -1969,7 +1985,7 @@ func getDTOClubOfficial(c *gin.Context) {
 			}
 		}
 
-		c.JSON(200, clubofficial)
+		CJSON(c, 200, clubofficial)
 		return
 
 	} else {
@@ -2050,7 +2066,7 @@ func putDTOClubOfficial(c *gin.Context) {
 					AbortWithStatusJSON(c, 400, err3.Error())
 					return
 				} else {
-					c.JSON(200, clubofficial)
+					CJSON(c, 200, clubofficial)
 					return
 				}
 			} else if strings.Compare(count, "1") == 0 { // update
@@ -2071,7 +2087,7 @@ func putDTOClubOfficial(c *gin.Context) {
 					AbortWithStatusJSON(c, 400, err4.Error())
 					return
 				} else {
-					c.JSON(200, clubofficial)
+					CJSON(c, 200, clubofficial)
 					return
 				}
 			} else {
@@ -2092,19 +2108,19 @@ func deleteDTOClubOfficial(c *gin.Context) {
 }
 
 func putDTORegion(c *gin.Context) {
-	c.JSON(204, "Mivis does not support Region, so ignore and no handling of input.")
+	CJSON(c, 204, "Mivis does not support Region, so ignore and no handling of input.")
 }
 
 func getDTOClubMember(c *gin.Context) {
-	c.JSON(204, "Mivis does not support Club Member, so ignore and no handling of input.")
+	CJSON(c, 204, "Mivis does not support Club Member, so ignore and no handling of input.")
 }
 
 func putDTOClubMember(c *gin.Context) {
-	c.JSON(204, "Mivis does not support Club Member, so ignore and no handling of input.")
+	CJSON(c, 204, "Mivis does not support Club Member, so ignore and no handling of input.")
 }
 
 func deleteDTOClubMember(c *gin.Context) {
-	c.JSON(204, "Mivis does not support Club Member, so ignore and no handling of input.")
+	CJSON(c, 204, "Mivis does not support Club Member, so ignore and no handling of input.")
 }
 
 func main() {

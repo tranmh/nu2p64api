@@ -83,3 +83,7 @@ func Test_validateDTOAddress(t *testing.T) {
 func Test_EscapeTick(t *testing.T) {
 	fmt.Println(EscapeTick("O'Connor"))
 }
+
+func Test_UTF8(t *testing.T) {
+	fmt.Println(ReplaceSpecialCharacters("Lange Ã\u0084cker 14"))
+}
