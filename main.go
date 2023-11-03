@@ -1475,7 +1475,7 @@ func updateDTOAddressOnTableAdressen(c *gin.Context) {
 }
 
 func getCountryIdByNameAKABezeichnung(countryNameAKABezeichnung string) (result int, err error) {
-	if (countryNameAKABezeichnung == "NULL") || (countryNameAKABezeichnung == "? unbekannt ?") || (countryNameAKABezeichnung == "?") {
+	if (countryNameAKABezeichnung == "NULL") || (countryNameAKABezeichnung == "? unbekannt ?") || (countryNameAKABezeichnung == "?") || (countryNameAKABezeichnung == "") {
 		return 1, nil
 	}
 
