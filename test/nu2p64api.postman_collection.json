@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "d22f21fb-5e8c-4740-87f1-88be01e04015",
+		"_postman_id": "932f6f88-3ddc-43f0-a6d9-8bbe7528b654",
 		"name": "nu2p64api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "29349200"
@@ -1932,7 +1932,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "https://test.svwt.info:4040/api",
+			"value": "https://test.svwt.info:3030/api",
 			"type": "string"
 		}
 	]
