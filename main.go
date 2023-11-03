@@ -136,7 +136,7 @@ func registerLoginUser(c *gin.Context) {
 	var input LoginUser
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		AbortWithStatusJSON(c, http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -226,14 +226,14 @@ func loginUser(c *gin.Context) {
 	var input LoginUser
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		AbortWithStatusJSON(c, http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	token, err := loginCheck(input.Username, input.Password)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "username or password is incorrect."})
+		AbortWithStatusJSON(c, http.StatusBadRequest, gin.H{"error": "username or password is incorrect."})
 		return
 	}
 
@@ -264,7 +264,7 @@ func verifyTokenController() gin.HandlerFunc {
 		log.Println(reqToken)
 
 		if authHeader == "" || reqToken == authHeader {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Authentication header not present or malformed"})
+			AbortWithStatusJSON(c, http.StatusUnauthorized, gin.H{"Message": "Authentication header not present or malformed"})
 			return
 		}
 
@@ -273,7 +273,7 @@ func verifyTokenController() gin.HandlerFunc {
 		if strings.Compare(reqToken, envFile["SECRET_TOKEN"]) != 0 {
 			log.Println(reqToken)
 			log.Println(envFile["SECRET_TOKEN"])
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Authentication token is not correct"})
+			AbortWithStatusJSON(c, http.StatusUnauthorized, gin.H{"Message": "Authentication token is not correct"})
 			return
 		}
 	}
@@ -391,6 +391,11 @@ func ClubTypeStringToistAbteilung(ct string) string {
 
 func EscapeTick(input string) string {
 	return strings.Replace(input, "'", "\\'", -1)
+}
+
+func AbortWithStatusJSON(c *gin.Context, code int, jsonObj any) {
+	fmt.Printf("ERROR code:%d jsonObj:%v \n", code, jsonObj)
+	c.AbortWithStatusJSON(code, jsonObj)
 }
 
 // -----------------------------------------------------------------------------
@@ -585,11 +590,11 @@ func getDTOPerson(c *gin.Context) {
 		log.Info(sqlSelectQueryCount)
 
 		if errDBExec != nil {
-			c.AbortWithStatusJSON(500, errDBExec.Error())
+			AbortWithStatusJSON(c, 500, errDBExec.Error())
 			return
 		} else {
 			if strings.Compare(count, "0") == 0 {
-				c.AbortWithStatusJSON(404, "person with following uuid was not found in database: "+uuidParam)
+				AbortWithStatusJSON(c, 404, "person with following uuid was not found in database: "+uuidParam)
 				return
 			}
 		}
@@ -641,7 +646,7 @@ func getDTOPerson(c *gin.Context) {
 		} else if strings.Compare(person.Sex, "1") == 0 {
 			person.Sex = "male"
 		} else {
-			c.AbortWithStatusJSON(500, errors.New("neither female=0 nor male=1 - broken data with sex aka person.geschlecht column? sex:"+person.Sex))
+			AbortWithStatusJSON(c, 500, errors.New("neither female=0 nor male=1 - broken data with sex aka person.geschlecht column? sex:"+person.Sex))
 			return
 		}
 
@@ -650,14 +655,14 @@ func getDTOPerson(c *gin.Context) {
 		} else if strings.Compare(tmpPrivacyState, "1") == 0 {
 			person.Privacy_State = false
 		} else {
-			c.AbortWithStatusJSON(500, errors.New("neither privacy_state=0 nor privacy_state=1 - broken data with privcay_state aka column person.datenschutz: "+tmpPrivacyState))
+			AbortWithStatusJSON(c, 500, errors.New("neither privacy_state=0 nor privacy_state=1 - broken data with privcay_state aka column person.datenschutz: "+tmpPrivacyState))
 			return
 		}
 
 		var parseBDError error
 		person.BirthDate, parseBDError = parseStringToCivilTime(tmpBirthDate)
 		if parseBDError != nil {
-			c.AbortWithStatusJSON(500, parseBDError.Error())
+			AbortWithStatusJSON(c, 500, parseBDError.Error())
 			return
 		}
 
@@ -665,19 +670,19 @@ func getDTOPerson(c *gin.Context) {
 		person.AddressUUID, errGetUUIDFromID = getUUIDFromID("adresse", tmpAdresseID)
 
 		if errGetUUIDFromID != nil {
-			c.AbortWithStatusJSON(500, errGetUUIDFromID.Error())
+			AbortWithStatusJSON(c, 500, errGetUUIDFromID.Error())
 			return
 		}
 
 		if err != nil {
-			c.AbortWithStatusJSON(500, err.Error())
+			AbortWithStatusJSON(c, 500, err.Error())
 			return
 		} else {
-			c.AbortWithStatusJSON(200, person)
+			c.JSON(200, person)
 			return
 		}
 	} else {
-		c.AbortWithStatusJSON(400, "uuidParam is not valid: "+uuidParam)
+		AbortWithStatusJSON(c, 400, "uuidParam is not valid: "+uuidParam)
 		return
 	}
 }
@@ -689,26 +694,26 @@ func deleteDTOGeneric(c *gin.Context, uuidParam string, deleteSQLStr string) {
 		result, err := db.Exec(deleteSQLStr, myUuid)
 
 		if err != nil {
-			c.AbortWithStatusJSON(500, err.Error())
+			AbortWithStatusJSON(c, 500, err.Error())
 			return
 		} else {
 			rowsAffected, err2 := result.RowsAffected()
 			if err2 != nil {
-				c.AbortWithStatusJSON(500, err2.Error())
+				AbortWithStatusJSON(c, 500, err2.Error())
 				return
 			} else if rowsAffected == 0 {
-				c.AbortWithStatusJSON(404, rowsAffected)
+				AbortWithStatusJSON(c, 404, rowsAffected)
 				return
 			} else if rowsAffected == 1 {
 				c.JSON(200, rowsAffected)
 				return
 			} else {
-				c.AbortWithStatusJSON(500, rowsAffected)
+				AbortWithStatusJSON(c, 500, rowsAffected)
 				return
 			}
 		}
 	} else {
-		c.AbortWithStatusJSON(400, "uuidParam is not valid: "+uuidParam)
+		AbortWithStatusJSON(c, 400, "uuidParam is not valid: "+uuidParam)
 		return
 	}
 }
@@ -741,12 +746,12 @@ func putDTOPerson(c *gin.Context) {
 	var person DTOPerson
 	err := c.BindJSON(&person)
 	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		AbortWithStatusJSON(c, 400, err.Error())
 		return
 	}
 
 	if strings.Compare(pers_uuid, person.UUID.String()) != 0 {
-		c.AbortWithStatusJSON(400, "uuid from URL and uuid as JSON in body does not fit: "+pers_uuid+" vs "+person.UUID.String())
+		AbortWithStatusJSON(c, 400, "uuid from URL and uuid as JSON in body does not fit: "+pers_uuid+" vs "+person.UUID.String())
 		return
 	}
 
@@ -754,12 +759,12 @@ func putDTOPerson(c *gin.Context) {
 		myUuid, parseErr := uuid.Parse(person.UUID.String())
 
 		if parseErr != nil {
-			c.AbortWithStatusJSON(400, parseErr.Error())
+			AbortWithStatusJSON(c, 400, parseErr.Error())
 			return
 		}
 
 		if !isValidUUID(myUuid.String()) {
-			c.AbortWithStatusJSON(400, errors.New("myUuid is not a valid UUID: "+myUuid.String()))
+			AbortWithStatusJSON(c, 400, errors.New("myUuid is not a valid UUID: "+myUuid.String()))
 			return
 		}
 
@@ -769,7 +774,7 @@ func putDTOPerson(c *gin.Context) {
 		log.Info(sqlSelectQuery)
 
 		if errDBExec != nil {
-			c.AbortWithStatusJSON(500, errDBExec.Error())
+			AbortWithStatusJSON(c, 500, errDBExec.Error())
 			return
 		} else {
 			var title = convertTitleToTitleID(person.Title)
@@ -777,7 +782,7 @@ func putDTOPerson(c *gin.Context) {
 			var birthday = strconv.Itoa(time.Time(person.BirthDate).Year()) + "-" + strconv.Itoa(int(time.Time(person.BirthDate).Month())) + "-" + strconv.Itoa(time.Time(person.BirthDate).Day())
 			var addressID, errGetIDFromUUID = getIDFromUUIDOrCreateDummyData("adresse", person.AddressUUID)
 			if errGetIDFromUUID != nil {
-				c.AbortWithStatusJSON(400, errGetIDFromUUID.Error()+" UUID was not found in table adresse")
+				AbortWithStatusJSON(c, 400, errGetIDFromUUID.Error()+" UUID was not found in table adresse")
 				return
 			}
 			if strings.Compare(person.FIDE_Id, "") == 0 {
@@ -828,7 +833,7 @@ func putDTOPerson(c *gin.Context) {
 				_, err3 := db.Exec(sqlInsertQuery)
 
 				if err3 != nil {
-					c.AbortWithStatusJSON(400, err3.Error())
+					AbortWithStatusJSON(c, 400, err3.Error())
 					return
 				} else {
 					c.JSON(200, person)
@@ -853,19 +858,19 @@ func putDTOPerson(c *gin.Context) {
 
 				_, err4 := db.Exec(sqlUpdateQuery)
 				if err4 != nil {
-					c.AbortWithStatusJSON(400, err4.Error())
+					AbortWithStatusJSON(c, 400, err4.Error())
 					return
 				} else {
 					c.JSON(200, person)
 					return
 				}
 			} else {
-				c.AbortWithStatusJSON(500, "panic, more than 1 federation with same uuid: "+myUuid.String())
+				AbortWithStatusJSON(c, 500, "panic, more than 1 federation with same uuid: "+myUuid.String())
 				return
 			}
 		}
 	} else {
-		c.AbortWithStatusJSON(400, errors.New("uuid is not valid"+person.UUID.String()))
+		AbortWithStatusJSON(c, 400, errors.New("uuid is not valid"+person.UUID.String()))
 		return
 	}
 }
@@ -886,11 +891,11 @@ func getDTOFederation(c *gin.Context) {
 		log.Info(sqlSelectQuery)
 
 		if errDBExec != nil {
-			c.AbortWithStatusJSON(500, errDBExec.Error())
+			AbortWithStatusJSON(c, 500, errDBExec.Error())
 			return
 		} else {
 			if strings.Compare(count, "0") == 0 {
-				c.AbortWithStatusJSON(404, "federation with the uuid was not found in the database: "+myUuid.String())
+				AbortWithStatusJSON(c, 404, "federation with the uuid was not found in the database: "+myUuid.String())
 				return
 			}
 		}
@@ -903,14 +908,14 @@ func getDTOFederation(c *gin.Context) {
 			)
 
 		if err != nil {
-			c.AbortWithStatusJSON(500, err.Error())
+			AbortWithStatusJSON(c, 500, err.Error())
 			return
 		} else {
 			c.JSON(200, federation)
 			return
 		}
 	} else {
-		c.AbortWithStatusJSON(400, "fed_uuid is not valid: "+fed_uuid)
+		AbortWithStatusJSON(c, 400, "fed_uuid is not valid: "+fed_uuid)
 		return
 	}
 }
@@ -921,12 +926,12 @@ func putDTOFederation(c *gin.Context) {
 	var federation DTOFederation
 	err := c.BindJSON(&federation)
 	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		AbortWithStatusJSON(c, 400, err.Error())
 		return
 	}
 
 	if strings.Compare(fed_uuid, federation.UUID.String()) != 0 {
-		c.AbortWithStatusJSON(400, "uuid from URL and uuid as JSON in body does not fit: "+fed_uuid+" vs "+federation.UUID.String())
+		AbortWithStatusJSON(c, 400, "uuid from URL and uuid as JSON in body does not fit: "+fed_uuid+" vs "+federation.UUID.String())
 		return
 	}
 
@@ -934,12 +939,12 @@ func putDTOFederation(c *gin.Context) {
 		myUuid, parseErr := uuid.Parse(federation.UUID.String())
 
 		if parseErr != nil {
-			c.AbortWithStatusJSON(400, parseErr.Error())
+			AbortWithStatusJSON(c, 400, parseErr.Error())
 			return
 		}
 
 		if !isValidUUID(myUuid.String()) {
-			c.AbortWithStatusJSON(400, errors.New("myUuid is not a valid UUID: "+myUuid.String()))
+			AbortWithStatusJSON(c, 400, errors.New("myUuid is not a valid UUID: "+myUuid.String()))
 			return
 		}
 
@@ -949,7 +954,7 @@ func putDTOFederation(c *gin.Context) {
 		log.Info(sqlSelectQuery)
 
 		if errDBExec != nil {
-			c.AbortWithStatusJSON(500, errDBExec.Error())
+			AbortWithStatusJSON(c, 500, errDBExec.Error())
 			return
 		} else {
 
@@ -971,7 +976,7 @@ func putDTOFederation(c *gin.Context) {
 				_, err3 := db.Exec(sqlInsertQuery)
 
 				if err3 != nil {
-					c.AbortWithStatusJSON(400, err3.Error())
+					AbortWithStatusJSON(c, 400, err3.Error())
 					return
 				} else {
 					c.JSON(200, federation)
@@ -990,19 +995,19 @@ func putDTOFederation(c *gin.Context) {
 
 				_, err4 := db.Exec(sqlUpdateQuery)
 				if err4 != nil {
-					c.AbortWithStatusJSON(400, err4.Error())
+					AbortWithStatusJSON(c, 400, err4.Error())
 					return
 				} else {
 					c.JSON(200, federation)
 					return
 				}
 			} else {
-				c.AbortWithStatusJSON(500, errors.New("panic, more than 1 federation with same uuid: "+myUuid.String()))
+				AbortWithStatusJSON(c, 500, errors.New("panic, more than 1 federation with same uuid: "+myUuid.String()))
 				return
 			}
 		}
 	} else {
-		c.AbortWithStatusJSON(400, errors.New("uuid is not valid"+federation.UUID.String()))
+		AbortWithStatusJSON(c, 400, errors.New("uuid is not valid"+federation.UUID.String()))
 		return
 	}
 }
@@ -1048,7 +1053,7 @@ func getDTOClub(c *gin.Context) {
 	var club DTOClub
 
 	if !isValidUUID(club_uuid) {
-		c.AbortWithStatusJSON(400, "club_uuid is not valid: "+club_uuid)
+		AbortWithStatusJSON(c, 400, "club_uuid is not valid: "+club_uuid)
 		return
 	}
 
@@ -1061,11 +1066,11 @@ func getDTOClub(c *gin.Context) {
 	log.Info(sqlSelectQueryCount)
 
 	if errDBExec != nil {
-		c.AbortWithStatusJSON(500, errDBExec.Error())
+		AbortWithStatusJSON(c, 500, errDBExec.Error())
 		return
 	} else {
 		if strings.Compare(count, "0") == 0 {
-			c.AbortWithStatusJSON(404, "club with the uuid was not found in the database: "+myUuid.String())
+			AbortWithStatusJSON(c, 404, "club with the uuid was not found in the database: "+myUuid.String())
 			return
 		}
 	}
@@ -1096,7 +1101,7 @@ func getDTOClub(c *gin.Context) {
 			&tmpClubType,
 		)
 	if err != nil {
-		c.AbortWithStatusJSON(500, err.Error())
+		AbortWithStatusJSON(c, 500, err.Error())
 		return
 	}
 
@@ -1104,7 +1109,7 @@ func getDTOClub(c *gin.Context) {
 		var parseError error
 		club.Entry_Date, parseError = parseStringToCivilTime(tmpEntryDate)
 		if parseError != nil {
-			c.AbortWithStatusJSON(500, parseError.Error())
+			AbortWithStatusJSON(c, 500, parseError.Error())
 			return
 		}
 	}
@@ -1112,14 +1117,14 @@ func getDTOClub(c *gin.Context) {
 	if tmpAddressId != -1 {
 		club.Contact_Address_UUID, err = getUUIDFromID("adresse", tmpAddressId)
 		if err != nil {
-			c.AbortWithStatusJSON(500, err.Error())
+			AbortWithStatusJSON(c, 500, err.Error())
 			return
 		}
 	}
 
 	club.Sport_Address_UUIDs, err = getSportAddressUUIDs(tmpOrganisationId)
 	if err != nil {
-		c.AbortWithStatusJSON(500, err.Error())
+		AbortWithStatusJSON(c, 500, err.Error())
 		return
 	}
 	club.Club_Type = istAbteilungToClubType(istAbteilung(tmpClubType))
@@ -1131,7 +1136,7 @@ func getDTOClub(c *gin.Context) {
 			&club.Federation_UUID,
 		)
 	if err2 != nil {
-		c.AbortWithStatusJSON(500, err2.Error())
+		AbortWithStatusJSON(c, 500, err2.Error())
 		return
 	}
 
@@ -1143,12 +1148,12 @@ func putDTOClub(c *gin.Context) {
 	var club DTOClub
 	err := c.BindJSON(&club)
 	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		AbortWithStatusJSON(c, 400, err.Error())
 		return
 	}
 
 	if strings.Compare(club_uuid, club.UUID.String()) != 0 {
-		c.AbortWithStatusJSON(400, "uuid from URL and uuid as JSON in body does not fit: "+club_uuid+" vs "+club.UUID.String())
+		AbortWithStatusJSON(c, 400, "uuid from URL and uuid as JSON in body does not fit: "+club_uuid+" vs "+club.UUID.String())
 		return
 	}
 
@@ -1156,12 +1161,12 @@ func putDTOClub(c *gin.Context) {
 		myUuid, parseErr := uuid.Parse(club.UUID.String())
 
 		if parseErr != nil {
-			c.AbortWithStatusJSON(400, parseErr.Error())
+			AbortWithStatusJSON(c, 400, parseErr.Error())
 			return
 		}
 
 		if !isValidUUID(myUuid.String()) {
-			c.AbortWithStatusJSON(400, errors.New("myUuid is not a valid UUID: "+myUuid.String()))
+			AbortWithStatusJSON(c, 400, errors.New("myUuid is not a valid UUID: "+myUuid.String()))
 			return
 		}
 
@@ -1171,7 +1176,7 @@ func putDTOClub(c *gin.Context) {
 		log.Info(sqlSelectQuery)
 
 		if errDBExec != nil {
-			c.AbortWithStatusJSON(500, err.Error())
+			AbortWithStatusJSON(c, 500, err.Error())
 			return
 		} else {
 
@@ -1196,7 +1201,7 @@ func putDTOClub(c *gin.Context) {
 				_, err3 := db.Exec(sqlInsertQuery)
 
 				if err3 != nil {
-					c.AbortWithStatusJSON(400, err3.Error())
+					AbortWithStatusJSON(c, 400, err3.Error())
 					return
 				} else {
 					c.JSON(200, club)
@@ -1217,19 +1222,19 @@ func putDTOClub(c *gin.Context) {
 
 				_, err4 := db.Exec(sqlUpdateQuery)
 				if err4 != nil {
-					c.AbortWithStatusJSON(400, err4.Error())
+					AbortWithStatusJSON(c, 400, err4.Error())
 					return
 				} else {
 					c.JSON(200, club)
 					return
 				}
 			} else {
-				c.AbortWithStatusJSON(500, errors.New("panic, more than 1 club with same uuid: "+myUuid.String()))
+				AbortWithStatusJSON(c, 500, errors.New("panic, more than 1 club with same uuid: "+myUuid.String()))
 				return
 			}
 		}
 	} else {
-		c.AbortWithStatusJSON(400, errors.New("uuid is not valid"+club.UUID.String()))
+		AbortWithStatusJSON(c, 400, errors.New("uuid is not valid"+club.UUID.String()))
 		return
 	}
 }
@@ -1270,7 +1275,7 @@ func getDTOAddress(c *gin.Context) {
 	} else if isValidUUIDofTable(addr_uuid, "adresse") {
 		getDTOAddressFromTableAdresse(c)
 	} else {
-		c.AbortWithStatusJSON(404, "addr_uuid: "+addr_uuid+" was neither found in table adresse nor table adressen")
+		AbortWithStatusJSON(c, 404, "addr_uuid: "+addr_uuid+" was neither found in table adresse nor table adressen")
 		return
 	}
 }
@@ -1295,7 +1300,7 @@ func getDTOAddressFromTableAdressen(c *gin.Context) {
 
 	rows, err := db.Query(sqlQuerySelect)
 	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		AbortWithStatusJSON(c, 400, err.Error())
 		return
 	}
 	defer rows.Close()
@@ -1305,7 +1310,7 @@ func getDTOAddressFromTableAdressen(c *gin.Context) {
 	for rows.Next() {
 		err := rows.Scan(&addrValue, &addrId)
 		if err != nil {
-			c.AbortWithStatusJSON(401, err.Error())
+			AbortWithStatusJSON(c, 401, err.Error())
 			return
 		}
 
@@ -1343,20 +1348,20 @@ func getDTOAddressFromTableAdressen(c *gin.Context) {
 		if addrId == 17 {
 			address.Latitude, err = strconv.ParseFloat(addrValue, 64)
 			if err != nil {
-				c.AbortWithStatusJSON(500, err.Error())
+				AbortWithStatusJSON(c, 500, err.Error())
 				return
 			}
 		}
 		if addrId == 18 {
 			address.Longitude, err = strconv.ParseFloat(addrValue, 64)
 			if err != nil {
-				c.AbortWithStatusJSON(500, err.Error())
+				AbortWithStatusJSON(c, 500, err.Error())
 				return
 			}
 		}
 	}
 	if err := rows.Err(); err != nil {
-		c.AbortWithStatusJSON(402, err)
+		AbortWithStatusJSON(c, 402, err)
 		return
 	}
 
@@ -1400,7 +1405,7 @@ func getDTOAddressFromTableAdresse(c *gin.Context) {
 		)
 
 	if err != nil {
-		c.AbortWithStatusJSON(500, err.Error())
+		AbortWithStatusJSON(c, 500, err.Error())
 		return
 	} else {
 		c.JSON(200, address)
@@ -1416,7 +1421,7 @@ func updateAdrTableWithValue(addrValue string, id_address int, id_art int, c *gi
 	log.Infoln(sqlUpdateQuery)
 	_, err := db.Exec(sqlUpdateQuery)
 	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		AbortWithStatusJSON(c, 400, err.Error())
 		return
 	}
 }
@@ -1441,14 +1446,14 @@ func updateDTOAddressOnTableAdressen(c *gin.Context) {
 
 	err := c.BindJSON(&addressOfClub)
 	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		AbortWithStatusJSON(c, 400, err.Error())
 		return
 	}
 
 	validateDTOAddress, _ := validateDTOAddress(addressOfClub)
 
 	if strings.Compare(addr_uuid, addressOfClub.UUID.String()) != 0 {
-		c.AbortWithStatusJSON(400, "uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfClub.UUID.String())
+		AbortWithStatusJSON(c, 400, "uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfClub.UUID.String())
 		return
 	}
 
@@ -1492,28 +1497,28 @@ func updateDTOAddressOnTableAdresse(c *gin.Context) {
 
 	err := c.BindJSON(&addressOfPerson)
 	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		AbortWithStatusJSON(c, 400, err.Error())
 		return
 	}
 
 	validateDTOAddress, _ := validateDTOAddress(addressOfPerson)
 
 	if strings.Compare(addr_uuid, addressOfPerson.UUID.String()) != 0 {
-		c.AbortWithStatusJSON(400, "uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfPerson.UUID.String())
+		AbortWithStatusJSON(c, 400, "uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfPerson.UUID.String())
 		return
 	}
 
 	id, err2 := getIDFromUUIDOrCreateDummyData("adresse", addressOfPerson.UUID)
 
 	if err2 != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		AbortWithStatusJSON(c, 400, err.Error())
 		return
 	}
 
 	idOfCountry, err3 := getCountryIdByNameAKABezeichnung(addressOfPerson.Country)
 
 	if err3 != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		AbortWithStatusJSON(c, 400, err.Error())
 		return
 	}
 
@@ -1534,7 +1539,7 @@ func updateDTOAddressOnTableAdresse(c *gin.Context) {
 
 	_, err4 := db.Exec(updateSQLStr)
 	if err4 != nil {
-		c.AbortWithStatusJSON(400, err4.Error())
+		AbortWithStatusJSON(c, 400, err4.Error())
 		return
 	} else {
 		if validateDTOAddress {
@@ -1552,21 +1557,21 @@ func insertDTOAddressIntoTableAdresse(c *gin.Context) {
 
 	err := c.BindJSON(&addressOfPerson)
 	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		AbortWithStatusJSON(c, 400, err.Error())
 		return
 	}
 
 	validateDTOAddress, _ := validateDTOAddress(addressOfPerson)
 
 	if strings.Compare(addr_uuid, addressOfPerson.UUID.String()) != 0 {
-		c.AbortWithStatusJSON(400, "uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfPerson.UUID.String())
+		AbortWithStatusJSON(c, 400, "uuid from URL and uuid as JSON in body does not fit: "+addr_uuid+" vs "+addressOfPerson.UUID.String())
 		return
 	}
 
 	idOfCountry, err3 := getCountryIdByNameAKABezeichnung(addressOfPerson.Country)
 
 	if err3 != nil {
-		c.AbortWithStatusJSON(400, err3.Error())
+		AbortWithStatusJSON(c, 400, err3.Error())
 		return
 	}
 
@@ -1599,7 +1604,7 @@ func insertDTOAddressIntoTableAdresse(c *gin.Context) {
 
 	_, err4 := db.Exec(updateSQLStr)
 	if err4 != nil {
-		c.AbortWithStatusJSON(400, err4.Error())
+		AbortWithStatusJSON(c, 400, err4.Error())
 		return
 	} else {
 		if validateDTOAddress {
@@ -1620,7 +1625,7 @@ func deleteDTOAddress(c *gin.Context) {
 		deleteSQLStr := "delete from adresse where uuid = ?"
 		deleteDTOGeneric(c, addr_uuid, deleteSQLStr)
 	} else {
-		c.AbortWithStatusJSON(404, "addr_uuid: "+addr_uuid+" was neither found in table adresse nor table adressen")
+		AbortWithStatusJSON(c, 404, "addr_uuid: "+addr_uuid+" was neither found in table adresse nor table adressen")
 		return
 	}
 }
@@ -1641,11 +1646,11 @@ func getDTOPlayerLicense(c *gin.Context) {
 		log.Info(sqlSelectQueryCount)
 
 		if errDBExec != nil {
-			c.AbortWithStatusJSON(500, errDBExec.Error())
+			AbortWithStatusJSON(c, 500, errDBExec.Error())
 			return
 		} else {
 			if strings.Compare(count, "0") == 0 {
-				c.AbortWithStatusJSON(404, "player license (table mitgliedschaft) with the uuid was not found in the database: "+myUuid.String())
+				AbortWithStatusJSON(c, 404, "player license (table mitgliedschaft) with the uuid was not found in the database: "+myUuid.String())
 				return
 			}
 		}
@@ -1687,34 +1692,34 @@ func getDTOPlayerLicense(c *gin.Context) {
 		if strings.Compare(memberFrom, "") != 0 {
 			playerlicense.LicenseValidFrom, parseError = parseStringToCivilTime(memberFrom)
 			if parseError != nil {
-				c.AbortWithStatusJSON(500, parseError.Error())
+				AbortWithStatusJSON(c, 500, parseError.Error())
 				return
 			}
 		}
 		if strings.Compare(memberUntil, "") != 0 {
 			playerlicense.LicenseValidUntil, parseError = parseStringToCivilTime(memberUntil)
 			if parseError != nil {
-				c.AbortWithStatusJSON(500, parseError.Error())
+				AbortWithStatusJSON(c, 500, parseError.Error())
 				return
 			}
 		}
 
 		myLicenseState, err := strconv.Atoi(licenseState)
 		if err != nil {
-			c.AbortWithStatusJSON(500, err.Error())
+			AbortWithStatusJSON(c, 500, err.Error())
 			return
 		}
 		playerlicense.License_State = LicenseStateToString(LicenseState(myLicenseState))
 
 		if err != nil {
-			c.AbortWithStatusJSON(500, err.Error())
+			AbortWithStatusJSON(c, 500, err.Error())
 			return
 		}
 
 		c.JSON(200, playerlicense)
 
 	} else {
-		c.AbortWithStatusJSON(400, "uuid is not valid: "+license_uuid)
+		AbortWithStatusJSON(c, 400, "uuid is not valid: "+license_uuid)
 		return
 	}
 }
@@ -1767,12 +1772,12 @@ func putDTOPlayerLicense(c *gin.Context) {
 
 	err := c.BindJSON(&playerlicense)
 	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		AbortWithStatusJSON(c, 400, err.Error())
 		return
 	}
 
 	if strings.Compare(license_uuid, playerlicense.UUID.String()) != 0 {
-		c.AbortWithStatusJSON(400, "uuid from URL and uuid as JSON in body does not fit: "+license_uuid+" vs "+playerlicense.UUID.String())
+		AbortWithStatusJSON(c, 400, "uuid from URL and uuid as JSON in body does not fit: "+license_uuid+" vs "+playerlicense.UUID.String())
 		return
 	}
 
@@ -1780,12 +1785,12 @@ func putDTOPlayerLicense(c *gin.Context) {
 		myUuid, parseErr := uuid.Parse(playerlicense.UUID.String())
 
 		if parseErr != nil {
-			c.AbortWithStatusJSON(400, parseErr.Error())
+			AbortWithStatusJSON(c, 400, parseErr.Error())
 			return
 		}
 
 		if !isValidUUID(myUuid.String()) {
-			c.AbortWithStatusJSON(400, errors.New("myUuid is not a valid UUID: "+myUuid.String()))
+			AbortWithStatusJSON(c, 400, errors.New("myUuid is not a valid UUID: "+myUuid.String()))
 			return
 		}
 
@@ -1795,7 +1800,7 @@ func putDTOPlayerLicense(c *gin.Context) {
 		log.Info(sqlSelectQuery)
 
 		if errDBExec != nil {
-			c.AbortWithStatusJSON(500, err.Error())
+			AbortWithStatusJSON(c, 500, err.Error())
 			return
 		} else {
 
@@ -1828,7 +1833,7 @@ func putDTOPlayerLicense(c *gin.Context) {
 				_, err3 := db.Exec(sqlInsertQuery)
 
 				if err3 != nil {
-					c.AbortWithStatusJSON(400, err3.Error())
+					AbortWithStatusJSON(c, 400, err3.Error())
 					return
 				} else {
 					c.JSON(200, playerlicense)
@@ -1850,19 +1855,19 @@ func putDTOPlayerLicense(c *gin.Context) {
 
 				_, err4 := db.Exec(sqlUpdateQuery)
 				if err4 != nil {
-					c.AbortWithStatusJSON(400, err4.Error())
+					AbortWithStatusJSON(c, 400, err4.Error())
 					return
 				} else {
 					c.JSON(200, playerlicense)
 					return
 				}
 			} else {
-				c.AbortWithStatusJSON(500, errors.New("panic, more than 1 club member with same uuid: "+myUuid.String()))
+				AbortWithStatusJSON(c, 500, errors.New("panic, more than 1 club member with same uuid: "+myUuid.String()))
 				return
 			}
 		}
 	} else {
-		c.AbortWithStatusJSON(400, errors.New("uuid is not valid "+playerlicense.UUID.String()))
+		AbortWithStatusJSON(c, 400, errors.New("uuid is not valid "+playerlicense.UUID.String()))
 		return
 	}
 }
@@ -1888,11 +1893,11 @@ func getDTOClubOfficial(c *gin.Context) {
 		log.Info(sqlSelectQueryCount)
 
 		if errDBExec != nil {
-			c.AbortWithStatusJSON(500, errDBExec.Error())
+			AbortWithStatusJSON(c, 500, errDBExec.Error())
 			return
 		} else {
 			if strings.Compare(count, "0") == 0 {
-				c.AbortWithStatusJSON(404, "club official with the uuid was not found in the database: "+myUuid.String())
+				AbortWithStatusJSON(c, 404, "club official with the uuid was not found in the database: "+myUuid.String())
 				return
 			}
 		}
@@ -1928,20 +1933,20 @@ func getDTOClubOfficial(c *gin.Context) {
 			)
 
 		if err != nil {
-			c.AbortWithStatusJSON(500, err.Error())
+			AbortWithStatusJSON(c, 500, err.Error())
 			return
 		}
 
 		var parseErrClubUUID error
 		clubofficial.Club_UUID, parseErrClubUUID = uuid.Parse(tmpClubUuid)
 		if parseErrClubUUID != nil {
-			c.AbortWithStatusJSON(500, parseErrClubUUID.Error())
+			AbortWithStatusJSON(c, 500, parseErrClubUUID.Error())
 			return
 		}
 		var parseErrPersonUUID error
 		clubofficial.Person_UUID, parseErrPersonUUID = uuid.Parse(tmpPersonUuid)
 		if parseErrPersonUUID != nil {
-			c.AbortWithStatusJSON(500, parseErrPersonUUID.Error())
+			AbortWithStatusJSON(c, 500, parseErrPersonUUID.Error())
 			return
 		}
 
@@ -1952,14 +1957,14 @@ func getDTOClubOfficial(c *gin.Context) {
 		if strings.Compare(validFrom, "") != 0 {
 			clubofficial.Valid_From, parseError = parseStringToCivilTime(validFrom)
 			if parseError != nil {
-				c.AbortWithStatusJSON(500, parseError.Error())
+				AbortWithStatusJSON(c, 500, parseError.Error())
 				return
 			}
 		}
 		if strings.Compare(validUntil, "") != 0 {
 			clubofficial.Valid_Until, parseError = parseStringToCivilTime(validUntil)
 			if parseError != nil {
-				c.AbortWithStatusJSON(500, parseError.Error())
+				AbortWithStatusJSON(c, 500, parseError.Error())
 				return
 			}
 		}
@@ -1968,7 +1973,7 @@ func getDTOClubOfficial(c *gin.Context) {
 		return
 
 	} else {
-		c.AbortWithStatusJSON(400, errors.New("uuid is not valid "+official_uuid))
+		AbortWithStatusJSON(c, 400, errors.New("uuid is not valid "+official_uuid))
 		return
 	}
 }
@@ -1979,12 +1984,12 @@ func putDTOClubOfficial(c *gin.Context) {
 
 	err := c.BindJSON(&clubofficial)
 	if err != nil {
-		c.AbortWithStatusJSON(400, err.Error())
+		AbortWithStatusJSON(c, 400, err.Error())
 		return
 	}
 
 	if strings.Compare(official_uuid, clubofficial.UUID.String()) != 0 {
-		c.AbortWithStatusJSON(400, "uuid from URL and uuid as JSON in body does not fit: "+official_uuid+" vs "+clubofficial.UUID.String())
+		AbortWithStatusJSON(c, 400, "uuid from URL and uuid as JSON in body does not fit: "+official_uuid+" vs "+clubofficial.UUID.String())
 		return
 	}
 
@@ -1992,7 +1997,7 @@ func putDTOClubOfficial(c *gin.Context) {
 		myUuid, parseErr := uuid.Parse(clubofficial.UUID.String())
 
 		if parseErr != nil {
-			c.AbortWithStatusJSON(400, parseErr.Error())
+			AbortWithStatusJSON(c, 400, parseErr.Error())
 			return
 		}
 
@@ -2002,18 +2007,18 @@ func putDTOClubOfficial(c *gin.Context) {
 		log.Infoln(sqlSelectQuery)
 
 		if errDBExec != nil {
-			c.AbortWithStatusJSON(500, err.Error())
+			AbortWithStatusJSON(c, 500, err.Error())
 			return
 		} else {
 
 			var person_id, errPersonId = getIDFromUUIDOrCreateDummyData("person", clubofficial.Person_UUID)
 			if errPersonId != nil {
-				c.AbortWithStatusJSON(400, errPersonId.Error())
+				AbortWithStatusJSON(c, 400, errPersonId.Error())
 				return
 			}
 			var organisation_id, errOrganisationId = getIDFromUUIDOrCreateDummyData("organisation", clubofficial.Club_UUID)
 			if errOrganisationId != nil {
-				c.AbortWithStatusJSON(400, errOrganisationId.Error())
+				AbortWithStatusJSON(c, 400, errOrganisationId.Error())
 				return
 			}
 			var fromStr = time.Time(clubofficial.Valid_From).Format("2006-01-02")
@@ -2042,7 +2047,7 @@ func putDTOClubOfficial(c *gin.Context) {
 				_, err3 := db.Exec(sqlInsertQuery)
 
 				if err3 != nil {
-					c.AbortWithStatusJSON(400, err3.Error())
+					AbortWithStatusJSON(c, 400, err3.Error())
 					return
 				} else {
 					c.JSON(200, clubofficial)
@@ -2063,19 +2068,19 @@ func putDTOClubOfficial(c *gin.Context) {
 
 				_, err4 := db.Exec(sqlUpdateQuery)
 				if err4 != nil {
-					c.AbortWithStatusJSON(400, err4.Error())
+					AbortWithStatusJSON(c, 400, err4.Error())
 					return
 				} else {
 					c.JSON(200, clubofficial)
 					return
 				}
 			} else {
-				c.AbortWithStatusJSON(500, errors.New("panic, more than 1 club offical with same uuid: "+myUuid.String()))
+				AbortWithStatusJSON(c, 500, errors.New("panic, more than 1 club offical with same uuid: "+myUuid.String()))
 				return
 			}
 		}
 	} else {
-		c.AbortWithStatusJSON(400, errors.New("uuid is not valid"+clubofficial.UUID.String()))
+		AbortWithStatusJSON(c, 400, errors.New("uuid is not valid"+clubofficial.UUID.String()))
 		return
 	}
 }
