@@ -389,6 +389,12 @@ func ClubTypeStringToistAbteilung(ct string) string {
 
 // -----------------------------------------------------------------------------
 
+func EscapeTick(input string) string {
+	return strings.Replace(input, "'", "\\'", -1)
+}
+
+// -----------------------------------------------------------------------------
+
 type DTOAddress struct {
 	UUID         uuid.UUID `json:"uuid"`
 	Name         string    `json:"name"`
@@ -574,7 +580,7 @@ func getDTOPerson(c *gin.Context) {
 	if isValidUUID(uuidParam) {
 
 		var count string
-		var sqlSelectQueryCount string = `select count(*) from person where uuid = '` + uuidParam + `'`
+		var sqlSelectQueryCount string = `select count(*) from person where uuid = '` + EscapeTick(uuidParam) + `'`
 		errDBExec := db.QueryRow(sqlSelectQueryCount).Scan(&count)
 		log.Info(sqlSelectQueryCount)
 
@@ -758,7 +764,7 @@ func putDTOPerson(c *gin.Context) {
 		}
 
 		var count string
-		var sqlSelectQuery string = `select count(*) from person where uuid = '` + myUuid.String() + `'`
+		var sqlSelectQuery string = `select count(*) from person where uuid = '` + EscapeTick(myUuid.String()) + `'`
 		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&count)
 		log.Info(sqlSelectQuery)
 
@@ -802,19 +808,19 @@ func putDTOPerson(c *gin.Context) {
 						nationfide, 
 						idfide)
 					VALUES ('` + person.UUID.String() +
-					`', '` + person.LastName +
-					`', '` + person.FirstName +
+					`', '` + EscapeTick(person.LastName) +
+					`', '` + EscapeTick(person.FirstName) +
 					`', ` + strconv.Itoa(title) +
 					`, ` + strconv.Itoa(int(sex)) +
 					`, ` + strconv.Itoa(addressID) +
 					`, '` + birthday +
-					`', '` + person.BirthPlace +
+					`', '` + EscapeTick(person.BirthPlace) +
 					`', ` + strconv.Itoa(person.Dead) +
-					`, '` + person.Nation +
+					`, '` + EscapeTick(person.Nation) +
 					`', '` + strconv.Itoa(privacy_state_int) +
-					`', '` + person.Remarks +
-					`', '` + person.FIDE_Nation +
-					`',` + person.FIDE_Id +
+					`', '` + EscapeTick(person.Remarks) +
+					`', '` + EscapeTick(person.FIDE_Nation) +
+					`',` + EscapeTick(person.FIDE_Id) +
 					`)
 				`
 				log.Info(sqlInsertQuery)
@@ -832,15 +838,15 @@ func putDTOPerson(c *gin.Context) {
 
 				var sqlUpdateQuery string = `
 					UPDATE person set 
-						name = '` + person.LastName + `',
-						vorname = '` + person.FirstName + `',
+						name = '` + EscapeTick(person.LastName) + `',
+						vorname = '` + EscapeTick(person.FirstName) + `',
 						titel = '` + strconv.Itoa(title) + `',
 						geschlecht = '` + strconv.Itoa(int(sex)) + `',
 						geburtsdatum = '` + birthday + `',
-						nation = '` + person.Nation + `',
+						nation = '` + EscapeTick(person.Nation) + `',
 						datenschutz = '` + strconv.Itoa(privacy_state_int) + `',
-						nationfide = '` + person.FIDE_Nation + `',
-						idfide = ` + person.FIDE_Id + `
+						nationfide = '` + EscapeTick(person.FIDE_Nation) + `',
+						idfide = ` + EscapeTick(person.FIDE_Id) + `
 					WHERE uuid = '` + person.UUID.String() + `'
 				`
 				log.Infoln(sqlUpdateQuery)
@@ -956,9 +962,9 @@ func putDTOFederation(c *gin.Context) {
 						vkz,
 						kurzname)
 					VALUES ('` + federation.UUID.String() +
-					`', '` + federation.Name +
-					`', '` + federation.Fedration_NR +
-					`', '` + federation.NickName + `')
+					`', '` + EscapeTick(federation.Name) +
+					`', '` + EscapeTick(federation.Fedration_NR) +
+					`', '` + EscapeTick(federation.NickName) + `')
 				`
 				log.Infoln(sqlInsertQuery)
 
@@ -975,9 +981,9 @@ func putDTOFederation(c *gin.Context) {
 
 				var sqlUpdateQuery string = `
 					UPDATE organisation set 
-						name = '` + federation.Name + `',
-						vkz = '` + federation.Fedration_NR + `',
-						kurzname = '` + federation.NickName + `'
+						name = '` + EscapeTick(federation.Name) + `',
+						vkz = '` + EscapeTick(federation.Fedration_NR) + `',
+						kurzname = '` + EscapeTick(federation.NickName) + `'
 					WHERE uuid = '` + federation.UUID.String() + `'
 				`
 				log.Infoln(sqlUpdateQuery)
@@ -1180,8 +1186,8 @@ func putDTOClub(c *gin.Context) {
 						grundungsdatum,
 						istAbteilung)
 					VALUES ('` + club.UUID.String() +
-					`', '` + club.Name +
-					`', '` + club.Club_NR +
+					`', '` + EscapeTick(club.Name) +
+					`', '` + EscapeTick(club.Club_NR) +
 					`', '` + CivilTimeToString(club.Entry_Date) +
 					`', ` + ClubTypeStringToistAbteilung(club.Club_Type) + `)
 				`
@@ -1201,8 +1207,8 @@ func putDTOClub(c *gin.Context) {
 				// TODO, extend this please with missing attributes
 				var sqlUpdateQuery string = `
 					UPDATE organisation SET 
-						name = '` + club.Name + `',
-						vkz = '` + club.Club_NR + `',
+						name = '` + EscapeTick(club.Name) + `',
+						vkz = '` + EscapeTick(club.Club_NR) + `',
 						grundungsdatum = '` + CivilTimeToString(club.Entry_Date) + `',
 						istAbteilung = '` + ClubTypeStringToistAbteilung(club.Club_Type) + `'
 					WHERE uuid = '` + club.UUID.String() + `'
@@ -1404,7 +1410,7 @@ func getDTOAddressFromTableAdresse(c *gin.Context) {
 func updateAdrTableWithValue(addrValue string, id_address int, id_art int, c *gin.Context) {
 	var sqlUpdateQuery = `
 	UPDATE adr set 
-		wert = '` + addrValue + `'
+		wert = '` + EscapeTick(addrValue) + `'
 	WHERE id_adressen = ` + strconv.Itoa(id_address) + ` AND
 		id_art = ` + strconv.Itoa(id_art)
 	log.Infoln(sqlUpdateQuery)
@@ -1514,14 +1520,14 @@ func updateDTOAddressOnTableAdresse(c *gin.Context) {
 	updateSQLStr := `
 	UPDATE adresse SET 
 		land = ` + strconv.Itoa(idOfCountry) + `, 
-		plz = '` + addressOfPerson.ZIP + `', 
-		ort = '` + addressOfPerson.City + `', 
-		strasse = '` + addressOfPerson.Street + `', 
-		tel1 = '` + addressOfPerson.Phone_Home + `', 
-		tel2 = '` + addressOfPerson.Phone_Work + `', 
-		tel3 = '` + addressOfPerson.Phone_Mobile + `', 
-		email1 = '` + addressOfPerson.Email + `', 
-		email2 = '` + addressOfPerson.Email2 + `' 
+		plz = '` + EscapeTick(addressOfPerson.ZIP) + `', 
+		ort = '` + EscapeTick(addressOfPerson.City) + `', 
+		strasse = '` + EscapeTick(addressOfPerson.Street) + `', 
+		tel1 = '` + EscapeTick(addressOfPerson.Phone_Home) + `', 
+		tel2 = '` + EscapeTick(addressOfPerson.Phone_Work) + `', 
+		tel3 = '` + EscapeTick(addressOfPerson.Phone_Mobile) + `', 
+		email1 = '` + EscapeTick(addressOfPerson.Email) + `', 
+		email2 = '` + EscapeTick(addressOfPerson.Email2) + `' 
 	WHERE id = ` + strconv.Itoa(id) + `
 	`
 	log.Infoln(updateSQLStr)
@@ -1579,14 +1585,14 @@ func insertDTOAddressIntoTableAdresse(c *gin.Context) {
 		)
 	VALUES ('` + addressOfPerson.UUID.String() +
 		`', ` + strconv.Itoa(idOfCountry) +
-		`, '` + addressOfPerson.ZIP +
-		`', '` + addressOfPerson.City +
-		`', '` + addressOfPerson.Street +
-		`', '` + addressOfPerson.Phone_Home +
-		`', '` + addressOfPerson.Phone_Work +
-		`', '` + addressOfPerson.Phone_Mobile +
-		`', '` + addressOfPerson.Email +
-		`', '` + addressOfPerson.Email2 +
+		`, '` + EscapeTick(addressOfPerson.ZIP) +
+		`', '` + EscapeTick(addressOfPerson.City) +
+		`', '` + EscapeTick(addressOfPerson.Street) +
+		`', '` + EscapeTick(addressOfPerson.Phone_Home) +
+		`', '` + EscapeTick(addressOfPerson.Phone_Work) +
+		`', '` + EscapeTick(addressOfPerson.Phone_Mobile) +
+		`', '` + EscapeTick(addressOfPerson.Email) +
+		`', '` + EscapeTick(addressOfPerson.Email2) +
 		`')`
 
 	log.Infoln(updateSQLStr)
@@ -2048,7 +2054,7 @@ func putDTOClubOfficial(c *gin.Context) {
 					UPDATE funktion set 
 						organisation = ` + strconv.Itoa(organisation_id) + `,
 						person = ` + strconv.Itoa(person_id) + `,
-						funktionsalias = '` + clubofficial.Role_Name + `',
+						funktionsalias = '` + EscapeTick(clubofficial.Role_Name) + `',
 						von = '` + fromStr + `',
 						bis = '` + untilStr + `'
 					WHERE uuid = '` + clubofficial.UUID.String() + `'
@@ -2163,5 +2169,5 @@ func main() {
 	envFile, _ := godotenv.Read(".env")
 
 	// router.Run(":3030")
-	router.RunTLS(":4040", envFile["SSL_CERTFILE_FULLCHAIN"], envFile["SSL_PRIVATE_KEYFILE"])
+	router.RunTLS(":3030", envFile["SSL_CERTFILE_FULLCHAIN"], envFile["SSL_PRIVATE_KEYFILE"])
 }

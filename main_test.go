@@ -79,3 +79,7 @@ func Test_validateDTOAddress(t *testing.T) {
 	}
 
 }
+
+func Test_EscapeTick(t *testing.T) {
+	fmt.Println(EscapeTick("O'Connor"))
+}

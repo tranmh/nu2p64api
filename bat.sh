@@ -19,5 +19,5 @@ cd test
 if [ "$HOSTNAME" = "mivis" ]; then 
     newman run nu2p64api.postman_collection.json --env-var "base_url=https://portal.svw.info:3030/api"
 else
-    newman run nu2p64api.postman_collection.json --env-var "base_url=https://test.svw.info:4040/api"
+    newman run nu2p64api.postman_collection.json --env-var "base_url=https://test.svw.info:3030/api"
 fi
