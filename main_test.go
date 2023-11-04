@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -86,4 +87,8 @@ func Test_EscapeTick(t *testing.T) {
 
 func Test_UTF8(t *testing.T) {
 	fmt.Println(ReplaceSpecialCharacters("Lange Ã\u0084cker 14"))
+}
+
+func Test_PrintTime(t *testing.T) {
+	fmt.Println(time.Now().Format(time.RFC3339))
 }

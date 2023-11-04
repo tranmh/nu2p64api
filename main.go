@@ -405,12 +405,12 @@ func EscapeTick(input string) string {
 }
 
 func AbortWithStatusJSON(c *gin.Context, code int, jsonObj any) {
-	fmt.Printf("ERROR code:%d jsonObj:%v \n", code, jsonObj)
+	fmt.Printf("%s ERROR code:%d jsonObj:%v \n", time.Now().Format(time.RFC3339), code, jsonObj)
 	c.AbortWithStatusJSON(code, jsonObj)
 }
 
 func CJSON(c *gin.Context, code int, jsonObj any) {
-	fmt.Printf("PASS code:%d jsonObj:%v \n", code, jsonObj)
+	fmt.Printf("%s PASS code:%d jsonObj:%v \n", time.Now().Format(time.RFC3339), code, jsonObj)
 	c.JSON(code, jsonObj)
 }
 
