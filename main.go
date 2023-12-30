@@ -18,14 +18,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/natefinch/lumberjack.v2"
 	"golang.org/x/text/encoding/charmap"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 var (
@@ -392,9 +392,9 @@ func ClubTypeStringToistAbteilung(ct string) string {
 
 func ReplaceSpecialCharacters(myString string) string {
 	// neue Konvertierung ueber charmap
-    //out := make([]byte, 0)
+	//out := make([]byte, 0)
 	var retString string
-	
+
 	for _, r := range myString {
 		if e, ok := charmap.ISO8859_1.EncodeRune(r); ok {
 			//out = append(out, e)
@@ -403,17 +403,17 @@ func ReplaceSpecialCharacters(myString string) string {
 	}
 	myString = retString
 	// alte Konvertierungen
-	
+
 	myString = strings.ReplaceAll(myString, "\xC2", "")
 	myString = strings.ReplaceAll(myString, "\x84", "")
 	myString = strings.ReplaceAll(myString, "\u0084", "")
 	myString = strings.ReplaceAll(myString, "\x9E", "")
 	myString = strings.ReplaceAll(myString, "\u009e", "")
 
-    // weitere Konvertierungen
-    myString = strings.ReplaceAll(myString, "\x96", "")
-    myString = strings.ReplaceAll(myString, "\x9A", "")
-    myString = strings.ReplaceAll(myString, "\x9F", "")    
+	// weitere Konvertierungen
+	myString = strings.ReplaceAll(myString, "\x96", "")
+	myString = strings.ReplaceAll(myString, "\x9A", "")
+	myString = strings.ReplaceAll(myString, "\x9F", "")
 	return myString
 }
 

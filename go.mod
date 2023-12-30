@@ -11,7 +11,10 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
-require github.com/stretchr/testify v1.8.4 // indirect
+require (
+	github.com/golang-jwt/jwt/v5 v5.2.0 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
+)
 
 require (
 	github.com/bytedance/sonic v1.8.0 // indirect
