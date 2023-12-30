@@ -25,6 +25,7 @@ import (
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
+	"golang.org/x/text/encoding/charmap"
 )
 
 var (
@@ -390,12 +391,29 @@ func ClubTypeStringToistAbteilung(ct string) string {
 // -----------------------------------------------------------------------------
 
 func ReplaceSpecialCharacters(myString string) string {
+	// neue Konvertierung ueber charmap
+    //out := make([]byte, 0)
+	var retString string
+	
+	for _, r := range myString {
+		if e, ok := charmap.ISO8859_1.EncodeRune(r); ok {
+			//out = append(out, e)
+			retString = retString + fmt.Sprintf("%c", e)
+		}
+	}
+	myString = retString
+	// alte Konvertierungen
+	
 	myString = strings.ReplaceAll(myString, "\xC2", "")
 	myString = strings.ReplaceAll(myString, "\x84", "")
 	myString = strings.ReplaceAll(myString, "\u0084", "")
 	myString = strings.ReplaceAll(myString, "\x9E", "")
 	myString = strings.ReplaceAll(myString, "\u009e", "")
 
+    // weitere Konvertierungen
+    myString = strings.ReplaceAll(myString, "\x96", "")
+    myString = strings.ReplaceAll(myString, "\x9A", "")
+    myString = strings.ReplaceAll(myString, "\x9F", "")    
 	return myString
 }
 
