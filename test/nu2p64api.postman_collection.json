@@ -1932,7 +1932,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "https://test.svwt.info:3030/api",
+			"value": "https://test.svw.info:3030/api",
 			"type": "string"
 		}
 	]
