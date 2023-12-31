@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -2139,11 +2138,11 @@ func deleteDTOClubMember(c *gin.Context) {
 
 func main() {
 
-	flag.StringVar(&yourMySQLdatabasepassword, "yourMySQLdatabasepassword", "NOT_SET", "your MySQL database password")
-	flag.StringVar(&basicAuthUsername, "basicAuthUsername", "NOT_SET", "your username for http basic authentication accessing the API")
-	flag.StringVar(&basicAuthPassword, "basicAuthPassword", "NOT_SET", "your password for http basic authentication accessing the API")
+	envFile, _ := godotenv.Read(".env")
 
-	flag.Parse()
+	yourMySQLdatabasepassword = envFile["yourMySQLdatabasepassword"]
+	basicAuthUsername = envFile["basicAuthUsername"]
+	basicAuthPassword = envFile["basicAuthPassword"]
 
 	var dataSourceName = "portal:" + yourMySQLdatabasepassword + "@tcp(127.0.0.1:3306)/mvdsb"
 	var err error
@@ -2200,8 +2199,6 @@ func main() {
 	authorized.GET("/player-licences/:license_uuid", getDTOPlayerLicense)
 	authorized.PUT("/player-licences/:license_uuid", putDTOPlayerLicense)
 	authorized.DELETE("/player-licences/:license_uuid", deleteDTOPlayerLicense)
-
-	envFile, _ := godotenv.Read(".env")
 
 	// router.Run(":3030")
 	router.RunTLS(":3030", envFile["SSL_CERTFILE_FULLCHAIN"], envFile["SSL_PRIVATE_KEYFILE"])
