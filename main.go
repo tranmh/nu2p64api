@@ -262,8 +262,6 @@ func verifyTokenController() gin.HandlerFunc {
 		authHeader := c.Request.Header.Get("Authorization")
 		reqToken := strings.TrimPrefix(authHeader, prefix)
 
-		log.Println(reqToken)
-
 		if authHeader == "" || reqToken == authHeader {
 			AbortWithStatusJSON(c, http.StatusUnauthorized, gin.H{"Message": "Authentication header not present or malformed"})
 			return
@@ -272,8 +270,6 @@ func verifyTokenController() gin.HandlerFunc {
 		envFile, _ := godotenv.Read(".env")
 
 		if strings.Compare(reqToken, envFile["SECRET_TOKEN"]) != 0 {
-			log.Println(reqToken)
-			log.Println(envFile["SECRET_TOKEN"])
 			AbortWithStatusJSON(c, http.StatusUnauthorized, gin.H{"Message": "Authentication token is not correct"})
 			return
 		}

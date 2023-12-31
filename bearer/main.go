@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -26,13 +25,10 @@ func verifyTokenController(w http.ResponseWriter, r *http.Request) {
 	authHeader := r.Header.Get("Authorization")
 	reqToken := strings.TrimPrefix(authHeader, prefix)
 
-	log.Println(reqToken)
-
 	if authHeader == "" || reqToken == authHeader {
 		errWithJSON(w, "Authentication header not present or malformed", http.StatusUnauthorized)
 		return
 	}
 
-	log.Println(reqToken)
 	responseWithJSON(w, []byte(`{"message":"Token is valid"}`), http.StatusOK)
 }
