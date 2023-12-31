@@ -1,0 +1,34 @@
+Bei https://github.com/tranmh/nu2p64api handelt es sich um ein öffentliches Repo. 
+Ihr müsst einfach selbst einen Account bei Github erstellen und das Repo forken und Pull Request erstellen. 
+
+Git clone geht auch ohne Account. 
+Oder ihr schreibt mir einfach euren Github-Accountnamen, nachdem ihr die erstellt habt, dann kann ich euch direkten Zugang geben.
+
+Auf test.svw.info unter /opt/nu2p64api liegt das Git Repo ebenfalls. 
+
+Der beste Einstieg wäre ./bat.sh aufzurufen und zu gucken, was passiert. bat steht für build and test. 
+
+Es gibt ein systemd nu2p64api.service Datei mit den Befehlen:
+systemctl status|start|stop|enable nu2p64api
+
+Quellcode liegt alles in main.go. 
+
+Wenig Testcode liegt in der main_test.go.
+Viel mehr Testcode liegt in der Postman Datei nu2p64api.postman_collection.json
+Tests werden per Postman geschrieben. Command Line Ausführung gibt es mit newman.
+
+Als IDE benutze ich Visual Studio Code. 
+Um dort zu arbeiten, habe ich ssh benutzt (https://code.visualstudio.com/docs/remote/ssh) und verbinde auf diese Weise Visual Studio Code direkt mit test.svw.info.
+
+Unter Ordner doc habe ich alle Informationen gesammelt, die ich im Laufe der Zeit von der Schnittstelle habe.
+
+Unter https://test.svw.info/phpmyadmin/ liegt bekanntlich der Zugang zu MySQL. MySQL lässt sich aber auch auf der Commandline durchführen.
+
+Wir betreiben neben Port 3030 für die Go-Schnitstelle auf demselben Server noch Apache, PHP7 und PHP8.
+
+Unter /var/www gibt es den PHP Quellcode von Holger, also Kopie vom Produktionsserver, git-versionskontrolliert. 
+
+Drei Subdomains habe ich angepeilt aufzusetzen, Configs liegen unter /etc/apache2/sites-enabled für
+dwz.test.svw.info
+mivis.test.svw.info
+portal.test.svw.info
