@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_GetPersonTranByUUID(t *testing.T) {
@@ -91,4 +92,77 @@ func Test_UTF8(t *testing.T) {
 
 func Test_PrintTime(t *testing.T) {
 	fmt.Println(time.Now().Format(time.RFC3339))
+}
+
+func Test_verifyPassword(t *testing.T) {
+	assert.Equal(t, false, verifyPassword("dead", "beef"))
+}
+
+func Test_ReplaceSpecialCharacters(t *testing.T) {
+	assert.Equal(t, "Lange cker 14", ReplaceSpecialCharacters("Lange \u0084cker 14"))
+}
+
+func Test_ClubTypeStringToistAbteilung(t *testing.T) {
+	assert.Equal(t, "0", ClubTypeStringToistAbteilung("SINGLEDEVISION"))
+	assert.Equal(t, "1", ClubTypeStringToistAbteilung("MULTIDIVISION"))
+	assert.Equal(t, "2", ClubTypeStringToistAbteilung("X"))
+}
+
+func TestCivilTime(t *testing.T) {
+	// Define test cases
+	testCases := []struct {
+		name           string
+		input          string
+		expectedOutput string
+		expectError    bool
+	}{
+		{
+			name:           "Valid Date",
+			input:          `"2022-01-01"`,
+			expectedOutput: `"2022-01-01"`,
+			expectError:    false,
+		},
+		{
+			name:           "Invalid Date",
+			input:          `"invalid-date"`,
+			expectedOutput: "",
+			expectError:    true,
+		},
+		{
+			name:           "Empty Date",
+			input:          `""`,
+			expectedOutput: `"0001-01-01"`,
+			expectError:    false,
+		},
+		{
+			name:           "Null Date",
+			input:          `"null"`,
+			expectedOutput: `"0001-01-01"`,
+			expectError:    false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a CivilTime object
+			var ct CivilTime
+
+			// Unmarshal the input into the CivilTime object
+			err := ct.UnmarshalJSON([]byte(tc.input))
+
+			// Check if an error was returned
+			if tc.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+
+				// Marshal the CivilTime object back into a string
+				output, err := ct.MarshalJSON()
+				assert.NoError(t, err)
+
+				// Check if the output matches the expected output
+				assert.Equal(t, tc.expectedOutput, string(output))
+			}
+		})
+	}
 }
