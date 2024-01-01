@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/mail"
 	"net/url"
@@ -19,12 +18,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+	"github.com/natefinch/lumberjack"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/text/encoding/charmap"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 var (
@@ -64,8 +63,8 @@ func LoggingMiddleware() gin.HandlerFunc {
 		// Request IP
 		clientIP := ctx.ClientIP()
 
-		reqBody, _ := ioutil.ReadAll(ctx.Request.Body)
-		ctx.Request.Body = ioutil.NopCloser(bytes.NewReader(reqBody))
+		reqBody, _ := io.ReadAll(ctx.Request.Body)
+		ctx.Request.Body = io.NopCloser(bytes.NewReader(reqBody))
 
 		log.WithFields(log.Fields{
 			"6_BODY":      string(reqBody),
