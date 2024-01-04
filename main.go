@@ -382,6 +382,19 @@ func ClubTypeStringToistAbteilung(ct string) string {
 	}
 }
 
+func ClubRoleNameToFunktion(crm string) string {
+	var id string
+	var sqlSelectQuery string = `select id from funktionsart where bezeichnung = '` + EscapeTick(crm) + `'`
+		errDBExec := db.QueryRow(sqlSelectQuery).Scan(&id)
+		//log.Info(sqlSelectQuery)
+
+		if errDBExec != nil {
+			return "0"
+		} else {
+			return id
+		}
+}
+
 // -----------------------------------------------------------------------------
 
 func ReplaceSpecialCharacters(myString string) string {
@@ -600,7 +613,11 @@ func parseStringToCivilTime(input string) (CivilTime, error) {
 }
 
 func CivilTimeToString(civilTime CivilTime) string {
-	return time.Time(civilTime).Format("2006-01-02")
+	ret := time.Time(civilTime).Format("2006-01-02")
+	if ret == "0001-01-01" {
+		ret = ""
+	}
+	return ret
 }
 
 // select
@@ -1208,22 +1225,38 @@ func putDTOClub(c *gin.Context) {
 			return
 		} else {
 
+			var gruendungsdatum string = CivilTimeToString(club.Entry_Date)
 			if strings.Compare(count, "0") == 0 { // insert
 
 				// TODO, extend this please with missing attributes
-				var sqlInsertQuery string = `
-					INSERT INTO organisation (
-						uuid,
-						name, 
-						vkz,
-						grundungsdatum,
-						istAbteilung)
-					VALUES ('` + club.UUID.String() +
-					`', '` + EscapeTick(club.Name) +
-					`', '` + EscapeTick(club.Club_NR) +
-					`', '` + CivilTimeToString(club.Entry_Date) +
-					`', ` + ClubTypeStringToistAbteilung(club.Club_Type) + `)
-				`
+				var sqlInsertQuery string
+				if gruendungsdatum == "" {
+				    sqlInsertQuery = `
+						INSERT INTO organisation (
+							uuid,
+							name, 
+							vkz,
+							istAbteilung)
+						VALUES ('` + club.UUID.String() +
+						`', '` + EscapeTick(club.Name) +
+						`', '` + EscapeTick(club.Club_NR) +
+						`', ` + ClubTypeStringToistAbteilung(club.Club_Type) + `)
+					`
+				} else {
+				    sqlInsertQuery = `
+						INSERT INTO organisation (
+							uuid,
+							name, 
+							vkz,
+							grundungsdatum,
+							istAbteilung)
+						VALUES ('` + club.UUID.String() +
+						`', '` + EscapeTick(club.Name) +
+						`', '` + EscapeTick(club.Club_NR) +
+						`', '` + gruendungsdatum +
+						`', ` + ClubTypeStringToistAbteilung(club.Club_Type) + `)
+					`
+				}
 				log.Infoln(sqlInsertQuery)
 
 				_, err3 := db.Exec(sqlInsertQuery)
@@ -1238,14 +1271,25 @@ func putDTOClub(c *gin.Context) {
 			} else if strings.Compare(count, "1") == 0 { // update
 
 				// TODO, extend this please with missing attributes
-				var sqlUpdateQuery string = `
-					UPDATE organisation SET 
-						name = '` + EscapeTick(club.Name) + `',
-						vkz = '` + EscapeTick(club.Club_NR) + `',
-						grundungsdatum = '` + CivilTimeToString(club.Entry_Date) + `',
-						istAbteilung = '` + ClubTypeStringToistAbteilung(club.Club_Type) + `'
-					WHERE uuid = '` + club.UUID.String() + `'
-				`
+				var sqlUpdateQuery string
+				if gruendungsdatum == "" {
+				    sqlUpdateQuery = `
+						UPDATE organisation SET 
+							name = '` + EscapeTick(club.Name) + `',
+							vkz = '` + EscapeTick(club.Club_NR) + `',
+							istAbteilung = '` + ClubTypeStringToistAbteilung(club.Club_Type) + `'
+						WHERE uuid = '` + club.UUID.String() + `'
+					`
+				} else {
+				    sqlUpdateQuery = `
+						UPDATE organisation SET 
+							name = '` + EscapeTick(club.Name) + `',
+							vkz = '` + EscapeTick(club.Club_NR) + `',
+							grundungsdatum = '` + gruendungsdatum + `',	
+							istAbteilung = '` + ClubTypeStringToistAbteilung(club.Club_Type) + `'
+						WHERE uuid = '` + club.UUID.String() + `'
+					`
+				}
 				log.Infoln(sqlUpdateQuery)
 
 				_, err4 := db.Exec(sqlUpdateQuery)
@@ -1834,28 +1878,77 @@ func putDTOPlayerLicense(c *gin.Context) {
 
 			var person_id, _ = getIDFromUUIDOrCreateDummyData("person", playerlicense.Person_UUID)
 			var organisation_id, _ = getIDFromUUIDOrCreateDummyData("organisation", playerlicense.Club_UUID)
-			var fromStr = time.Time(playerlicense.LicenseValidFrom).Format("2006-01-02")
-			var untilStr = time.Time(playerlicense.LicenseValidUntil).Format("2006-01-02")
+			var fromStr = CivilTimeToString(playerlicense.LicenseValidFrom)
+			var untilStr = CivilTimeToString(playerlicense.LicenseValidUntil)
 
 			if strings.Compare(count, "0") == 0 { // insert
 
-				var sqlInsertQuery string = `
-					INSERT INTO mitgliedschaft (
-						uuid,
-						person,
-						organisation,
-						von,
-						bis,
-						stat1,
-						spielernummer)
-					VALUES ('` + playerlicense.UUID.String() +
-					`', ` + strconv.Itoa(person_id) +
-					`, '` + strconv.Itoa(organisation_id) +
-					`', '` + fromStr +
-					`', '` + untilStr +
-					`', '` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) +
-					`', ` + strconv.Itoa(playerlicense.Member_Nr) + `)
-				`
+				var sqlInsertQuery string
+				if fromStr == "" && untilStr == "" {
+					sqlInsertQuery = `
+						INSERT INTO mitgliedschaft (
+							uuid,
+							person,
+							organisation,
+							stat1,
+							spielernummer)
+						VALUES ('` + playerlicense.UUID.String() +
+						`', ` + strconv.Itoa(person_id) +
+						`, '` + strconv.Itoa(organisation_id) +
+						`', '` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) +
+						`', ` + strconv.Itoa(playerlicense.Member_Nr) + `)
+					`
+				} else if fromStr == "" {
+					sqlInsertQuery = `
+						INSERT INTO mitgliedschaft (
+							uuid,
+							person,
+							organisation,
+							bis,
+							stat1,
+							spielernummer)
+						VALUES ('` + playerlicense.UUID.String() +
+						`', ` + strconv.Itoa(person_id) +
+						`, '` + strconv.Itoa(organisation_id) +
+						`', '` + untilStr +
+						`', '` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) +
+						`', ` + strconv.Itoa(playerlicense.Member_Nr) + `)
+					`
+				} else if untilStr == "" {
+					sqlInsertQuery = `
+						INSERT INTO mitgliedschaft (
+							uuid,
+							person,
+							organisation,
+							von,
+							stat1,
+							spielernummer)
+						VALUES ('` + playerlicense.UUID.String() +
+						`', ` + strconv.Itoa(person_id) +
+						`, '` + strconv.Itoa(organisation_id) +
+						`', '` + fromStr +
+						`', '` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) +
+						`', ` + strconv.Itoa(playerlicense.Member_Nr) + `)
+					`
+				} else {
+					sqlInsertQuery = `
+						INSERT INTO mitgliedschaft (
+							uuid,
+							person,
+							organisation,
+							von,
+							bis,
+							stat1,
+							spielernummer)
+						VALUES ('` + playerlicense.UUID.String() +
+						`', ` + strconv.Itoa(person_id) +
+						`, '` + strconv.Itoa(organisation_id) +
+						`', '` + fromStr +
+						`', '` + untilStr +
+						`', '` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) +
+						`', ` + strconv.Itoa(playerlicense.Member_Nr) + `)
+					`
+				}
 				log.Infoln(sqlInsertQuery)
 
 				_, err3 := db.Exec(sqlInsertQuery)
@@ -1869,16 +1962,48 @@ func putDTOPlayerLicense(c *gin.Context) {
 				}
 			} else if strings.Compare(count, "1") == 0 { // update
 
-				var sqlUpdateQuery string = `
-					UPDATE mitgliedschaft set 
-						person = ` + strconv.Itoa(person_id) + `,
-						organisation = ` + strconv.Itoa(organisation_id) + `,
-						von = '` + fromStr + `',
-						bis = '` + untilStr + `',
-						stat1 = ` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) + `,
-						spielernummer = ` + strconv.Itoa(playerlicense.Member_Nr) + `
-					WHERE uuid = '` + playerlicense.UUID.String() + `'
-				`
+				var sqlUpdateQuery string
+				if fromStr == "" && untilStr == "" {
+					sqlUpdateQuery = `
+						UPDATE mitgliedschaft set 
+							person = ` + strconv.Itoa(person_id) + `,
+							organisation = ` + strconv.Itoa(organisation_id) + `,
+							stat1 = ` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) + `,
+							spielernummer = ` + strconv.Itoa(playerlicense.Member_Nr) + `
+						WHERE uuid = '` + playerlicense.UUID.String() + `'
+					`
+				} else if fromStr == "" {
+					sqlUpdateQuery = `
+						UPDATE mitgliedschaft set 
+							person = ` + strconv.Itoa(person_id) + `,
+							organisation = ` + strconv.Itoa(organisation_id) + `,
+							bis = '` + untilStr + `',
+							stat1 = ` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) + `,
+							spielernummer = ` + strconv.Itoa(playerlicense.Member_Nr) + `
+						WHERE uuid = '` + playerlicense.UUID.String() + `'
+					`
+				} else if untilStr == "" {
+					sqlUpdateQuery = `
+						UPDATE mitgliedschaft set 
+							person = ` + strconv.Itoa(person_id) + `,
+							organisation = ` + strconv.Itoa(organisation_id) + `,
+							von = '` + fromStr + `',
+							stat1 = ` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) + `,
+							spielernummer = ` + strconv.Itoa(playerlicense.Member_Nr) + `
+						WHERE uuid = '` + playerlicense.UUID.String() + `'
+					`
+				} else {
+					sqlUpdateQuery = `
+						UPDATE mitgliedschaft set 
+							person = ` + strconv.Itoa(person_id) + `,
+							organisation = ` + strconv.Itoa(organisation_id) + `,
+							von = '` + fromStr + `',
+							bis = '` + untilStr + `',
+							stat1 = ` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) + `,
+							spielernummer = ` + strconv.Itoa(playerlicense.Member_Nr) + `
+						WHERE uuid = '` + playerlicense.UUID.String() + `'
+					`
+				}
 				log.Infoln(sqlUpdateQuery)
 
 				_, err4 := db.Exec(sqlUpdateQuery)
@@ -2049,27 +2174,81 @@ func putDTOClubOfficial(c *gin.Context) {
 				AbortWithStatusJSON(c, 400, errOrganisationId.Error())
 				return
 			}
-			var fromStr = time.Time(clubofficial.Valid_From).Format("2006-01-02")
-			var untilStr = time.Time(clubofficial.Valid_Until).Format("2006-01-02")
+			var fromStr = CivilTimeToString(clubofficial.Valid_From)
+			var untilStr = CivilTimeToString(clubofficial.Valid_Until)
+			var funktion = ClubRoleNameToFunktion(clubofficial.Role_Name)
 
 			if strings.Compare(count, "0") == 0 { // insert
 
-				// TODO add funktion as id as well
-				var sqlInsertQuery string = `
-					INSERT INTO funktion (
-						uuid,
-						organisation,
-						person,
-						funktionsalias,
-						von,
-						bis)
-					VALUES ('` + clubofficial.UUID.String() +
-					`', ` + strconv.Itoa(organisation_id) +
-					`,` + strconv.Itoa(person_id) +
-					`, '` + clubofficial.Role_Name +
-					`', '` + fromStr +
-					`', '` + untilStr + `')
-				`
+				// TODO add funktion as id as well -> erledigt Michael
+				var sqlInsertQuery string
+				if fromStr == "" && untilStr == "" {
+					sqlInsertQuery = `
+						INSERT INTO funktion (
+							uuid,
+							organisation,
+							person,
+							funktion,
+							funktionsalias)
+						VALUES ('` + clubofficial.UUID.String() +
+						`', ` + strconv.Itoa(organisation_id) +
+						`, ` + strconv.Itoa(person_id) +
+						`, ` + funktion +
+						`, '` + clubofficial.Role_Name +
+						`')
+					`
+				} else if fromStr == "" {
+					sqlInsertQuery = `
+						INSERT INTO funktion (
+							uuid,
+							organisation,
+							person,
+							funktion,
+							funktionsalias,
+							bis)
+						VALUES ('` + clubofficial.UUID.String() +
+						`', ` + strconv.Itoa(organisation_id) +
+						`,` + strconv.Itoa(person_id) +
+						`, ` + funktion +
+						`, '` + clubofficial.Role_Name +
+						`', '` + untilStr + `')
+					`
+				} else if untilStr == "" {
+					sqlInsertQuery = `
+						INSERT INTO funktion (
+							uuid,
+							organisation,
+							person,
+							funktion,
+							funktionsalias,
+							von)
+						VALUES ('` + clubofficial.UUID.String() +
+						`', ` + strconv.Itoa(organisation_id) +
+						`,` + strconv.Itoa(person_id) +
+						`, ` + funktion +
+						`, '` + clubofficial.Role_Name +
+						`', '` + fromStr +
+						`')
+					`
+				} else {
+					sqlInsertQuery = `
+						INSERT INTO funktion (
+							uuid,
+							organisation,
+							person,
+							funktion,
+							funktionsalias,
+							von,
+							bis)
+						VALUES ('` + clubofficial.UUID.String() +
+						`', ` + strconv.Itoa(organisation_id) +
+						`,` + strconv.Itoa(person_id) +
+						`, ` + funktion +
+						`, '` + clubofficial.Role_Name +
+						`', '` + fromStr +
+						`', '` + untilStr + `')
+					`
+				}
 				log.Infoln(sqlInsertQuery)
 
 				_, err3 := db.Exec(sqlInsertQuery)
@@ -2083,15 +2262,48 @@ func putDTOClubOfficial(c *gin.Context) {
 				}
 			} else if strings.Compare(count, "1") == 0 { // update
 
-				var sqlUpdateQuery string = `
-					UPDATE funktion set 
-						organisation = ` + strconv.Itoa(organisation_id) + `,
-						person = ` + strconv.Itoa(person_id) + `,
-						funktionsalias = '` + EscapeTick(clubofficial.Role_Name) + `',
-						von = '` + fromStr + `',
-						bis = '` + untilStr + `'
-					WHERE uuid = '` + clubofficial.UUID.String() + `'
-				`
+				var sqlUpdateQuery string
+				if fromStr == "" && untilStr == "" {
+					sqlUpdateQuery = `
+						UPDATE funktion set 
+							organisation = ` + strconv.Itoa(organisation_id) + `,
+							person = ` + strconv.Itoa(person_id) + `,
+							funktion = ` + funktion + `,
+							funktionsalias = '` + EscapeTick(clubofficial.Role_Name) + `'
+						WHERE uuid = '` + clubofficial.UUID.String() + `'
+					`
+				} else if fromStr == "" {
+					sqlUpdateQuery = `
+						UPDATE funktion set 
+							organisation = ` + strconv.Itoa(organisation_id) + `,
+							person = ` + strconv.Itoa(person_id) + `,
+							funktion = ` + funktion + `,
+							funktionsalias = '` + EscapeTick(clubofficial.Role_Name) + `',
+							bis = '` + untilStr + `'
+						WHERE uuid = '` + clubofficial.UUID.String() + `'
+					`
+				} else if untilStr == "" {
+					sqlUpdateQuery = `
+						UPDATE funktion set 
+							organisation = ` + strconv.Itoa(organisation_id) + `,
+							person = ` + strconv.Itoa(person_id) + `,
+							funktion = ` + funktion + `,
+							funktionsalias = '` + EscapeTick(clubofficial.Role_Name) + `',
+							von = '` + fromStr + `'
+						WHERE uuid = '` + clubofficial.UUID.String() + `'
+					`
+				} else {
+					sqlUpdateQuery = `
+						UPDATE funktion set 
+							organisation = ` + strconv.Itoa(organisation_id) + `,
+							person = ` + strconv.Itoa(person_id) + `,
+							funktion = ` + funktion + `,
+							funktionsalias = '` + EscapeTick(clubofficial.Role_Name) + `',
+							von = '` + fromStr + `',
+							bis = '` + untilStr + `'
+						WHERE uuid = '` + clubofficial.UUID.String() + `'
+					`
+				}
 				log.Infoln(sqlUpdateQuery)
 
 				_, err4 := db.Exec(sqlUpdateQuery)
