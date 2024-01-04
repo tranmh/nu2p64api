@@ -588,9 +588,9 @@ type DTOPlayerLicense struct {
 	Club_UUID         uuid.UUID `json:"club-uuid"`
 	Person_UUID       uuid.UUID `json:"person-uuid"`
 	RequestDate       CivilTime `json:"request-date"`
-	LicenseValidFrom  CivilTime `json:"license-valid-from"`
-	LicenseValidUntil CivilTime `json:"license-valid-until"`
-	License_State     string    `json:"license-state"` // ACTIVE, PASSIVE
+	LicenseValidFrom  CivilTime `json:"licence-valid-from"`
+	LicenseValidUntil CivilTime `json:"licence-valid-until"`
+	License_State     string    `json:"licence-state"` // ACTIVE, PASSIVE
 	Member_Nr         int       `json:"member-nr"`     // PKZ
 }
 
