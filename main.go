@@ -421,6 +421,7 @@ func ReplaceSpecialCharacters(myString string) string {
 	myString = strings.ReplaceAll(myString, "\x96", "")
 	myString = strings.ReplaceAll(myString, "\x9A", "")
 	myString = strings.ReplaceAll(myString, "\x9F", "")
+	myString = strings.ReplaceAll(myString, "\xC3", "ß")
 	return myString
 }
 
