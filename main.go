@@ -345,9 +345,9 @@ func LicenseStateToString(licState LicenseState) string {
 }
 
 func getLicenseStateFromString(licStateStr string) LicenseState {
-	if strings.Compare(licStateStr, "ACTIVE") == 0 {
+	if strings.Compare(strings.ToUpper(licStateStr), "ACTIVE") == 0 {
 		return LicenseStateActive
-	} else if strings.Compare(licStateStr, "PASSIVE") == 0 {
+	} else if strings.Compare(strings.ToUpper(licStateStr), "PASSIVE") == 0 {
 		return LicenseStatePassive
 	} else {
 		return LicenseStateUnknown
