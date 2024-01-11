@@ -426,7 +426,7 @@ func ReplaceSpecialCharacters(myString string) string {
 }
 
 func EscapeTick(input string) string {
-	input = ReplaceSpecialCharacters(input)
+	// input = ReplaceSpecialCharacters(input)
 	return strings.ReplaceAll(input, "'", "\\'")
 }
 
@@ -2364,6 +2364,12 @@ func main() {
 	}
 	defer db.Close()
 
+	var SQLQuerySet string = `SET NAMES utf8mb4`
+	_, err = db.Exec(SQLQuerySet)
+	if err != nil {
+		panic(err.Error())
+	}
+	
 	router := gin.New()
 
 	router.Use(gin.Recovery())
