@@ -893,9 +893,13 @@ func putDTOPerson(c *gin.Context) {
 						vorname = '` + EscapeTick(person.FirstName) + `',
 						titel = '` + strconv.Itoa(title) + `',
 						geschlecht = '` + strconv.Itoa(int(sex)) + `',
+						adress = '` + strconv.Itoa(addressID) + `',
 						geburtsdatum = '` + birthday + `',
+						geburtsort = '` + EscapeTick(person.BirthPlace) + `',
+						verstorben = '` + strconv.Itoa(person.Dead) + `',
 						nation = '` + EscapeTick(person.Nation) + `',
 						datenschutz = '` + strconv.Itoa(privacy_state_int) + `',
+						bemerkung = '` + EscapeTick(person.Remarks) + `',
 						nationfide = '` + EscapeTick(person.FIDE_Nation) + `',
 						idfide = ` + EscapeTick(person.FIDE_Id) + `
 					WHERE uuid = '` + person.UUID.String() + `'
