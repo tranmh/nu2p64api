@@ -23,7 +23,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/natefinch/lumberjack"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/text/encoding/charmap"
+//	"golang.org/x/text/encoding/charmap"
 )
 
 var (
@@ -373,9 +373,9 @@ func istAbteilungToClubType(ia istAbteilung) string {
 }
 
 func ClubTypeStringToistAbteilung(ct string) string {
-	if strings.Compare(ct, "SINGLEDEVISION") == 0 {
+	if strings.Compare(strings.ToUpper(ct), "SINGLEDEVISION") == 0 {
 		return strconv.Itoa(int(Einsparten))
-	} else if strings.Compare(ct, "MULTIDIVISION") == 0 {
+	} else if strings.Compare(strings.ToUpper(ct), "MULTIDIVISION") == 0 {
 		return strconv.Itoa(int(Mehrsparten))
 	} else {
 		return strconv.Itoa(int(UNKNOWN_istAbteilung))
@@ -400,33 +400,38 @@ func ClubRoleNameToFunktion(crm string) string {
 func ReplaceSpecialCharacters(myString string) string {
 	// neue Konvertierung ueber charmap
 	//out := make([]byte, 0)
-	var retString string
+	//var retString string
 
-	for _, r := range myString {
-		if e, ok := charmap.ISO8859_1.EncodeRune(r); ok {
-			//out = append(out, e)
-			retString = retString + fmt.Sprintf("%c", e)
-		}
-	}
-	myString = retString
+	//for _, r := range myString {
+	//	if e, ok := charmap.ISO8859_1.EncodeRune(r); ok {
+	//		//out = append(out, e)
+	//		retString = retString + fmt.Sprintf("%c", e)
+	//	}
+	//}
+	//myString = retString
 	// alte Konvertierungen
 
-	myString = strings.ReplaceAll(myString, "\xC2", "")
-	myString = strings.ReplaceAll(myString, "\x84", "")
-	myString = strings.ReplaceAll(myString, "\u0084", "")
-	myString = strings.ReplaceAll(myString, "\x9E", "")
-	myString = strings.ReplaceAll(myString, "\u009e", "")
+	//myString = strings.ReplaceAll(myString, "\xC2", "")
+	//myString = strings.ReplaceAll(myString, "\x84", "")
+	//myString = strings.ReplaceAll(myString, "\u0084", "")
+	//myString = strings.ReplaceAll(myString, "\x9E", "")
+	//myString = strings.ReplaceAll(myString, "\u009e", "")
 
 	// weitere Konvertierungen
-	myString = strings.ReplaceAll(myString, "\x96", "")
-	myString = strings.ReplaceAll(myString, "\x9A", "")
-	myString = strings.ReplaceAll(myString, "\x9F", "")
-	myString = strings.ReplaceAll(myString, "\xC3", "ß")
+	//myString = strings.ReplaceAll(myString, "\x96", "")
+	//myString = strings.ReplaceAll(myString, "\x9A", "")
+	//myString = strings.ReplaceAll(myString, "\x9F", "")
+	//myString = strings.ReplaceAll(myString, "\xC3", "ß")
+	
+	// neue Konvertierungen
+	myString = strings.ReplaceAll(myString, "\xC2\x96", " ")
+	myString = strings.ReplaceAll(myString, "\u009a", "")
+	
 	return myString
 }
 
 func EscapeTick(input string) string {
-	// input = ReplaceSpecialCharacters(input)
+	input = ReplaceSpecialCharacters(input)
 	return strings.ReplaceAll(input, "'", "\\'")
 }
 
@@ -1231,35 +1236,64 @@ func putDTOClub(c *gin.Context) {
 		} else {
 
 			var gruendungsdatum string = CivilTimeToString(club.Entry_Date)
+			var addressID, errGetIDFromUUID = getIDFromUUIDOrCreateDummyData("adresse", club.Contact_Address_UUID)
+			if errGetIDFromUUID != nil {
+				AbortWithStatusJSON(c, 400, errGetIDFromUUID.Error()+" UUID was not found in table adresse")
+				return
+			}
 			if strings.Compare(count, "0") == 0 { // insert
 
-				// TODO, extend this please with missing attributes
+				// TODO, extend this please with missing attributes => erledigt
 				var sqlInsertQuery string
 				if gruendungsdatum == "" {
 				    sqlInsertQuery = `
 						INSERT INTO organisation (
 							uuid,
 							name, 
+							adress,
+							adristperson,
 							vkz,
+							verband,
+							unterverband,
+							bezirk,
+							verein,
 							istAbteilung)
 						VALUES ('` + club.UUID.String() +
 						`', '` + EscapeTick(club.Name) +
-						`', '` + EscapeTick(club.Club_NR) +
-						`', ` + ClubTypeStringToistAbteilung(club.Club_Type) + `)
+						`', `  + strconv.Itoa(addressID) +
+						`, `   + strconv.Itoa(0) +
+						`, '`  + EscapeTick(club.Club_NR[0:5]) +
+						`', '` + EscapeTick(string(club.Club_NR[0])) +
+						`', '` + EscapeTick(string(club.Club_NR[1])) +
+						`', '` + EscapeTick(string(club.Club_NR[2])) +
+						`', '` + EscapeTick(club.Club_NR[3:5]) +
+						`', `  + ClubTypeStringToistAbteilung(club.Club_Type) + `)
 					`
 				} else {
 				    sqlInsertQuery = `
 						INSERT INTO organisation (
 							uuid,
 							name, 
+							adress,
+							adristperson,
 							vkz,
+							verband,
+							unterverband,
+							bezirk,
+							verein,
 							grundungsdatum,
 							istAbteilung)
 						VALUES ('` + club.UUID.String() +
 						`', '` + EscapeTick(club.Name) +
-						`', '` + EscapeTick(club.Club_NR) +
+						`', `  + strconv.Itoa(addressID) +
+						`, `   + strconv.Itoa(0) +
+						`, '`  + EscapeTick(club.Club_NR[0:5]) +
+						`', '` + EscapeTick(string(club.Club_NR[0])) +
+						`', '` + EscapeTick(string(club.Club_NR[1])) +
+						`', '` + EscapeTick(string(club.Club_NR[2])) +
+						`', '` + EscapeTick(club.Club_NR[3:5]) +
 						`', '` + gruendungsdatum +
-						`', ` + ClubTypeStringToistAbteilung(club.Club_Type) + `)
+						`', `  + ClubTypeStringToistAbteilung(club.Club_Type) + `)
 					`
 				}
 				log.Infoln(sqlInsertQuery)
@@ -1275,13 +1309,19 @@ func putDTOClub(c *gin.Context) {
 				}
 			} else if strings.Compare(count, "1") == 0 { // update
 
-				// TODO, extend this please with missing attributes
+				// TODO, extend this please with missing attributes => erledigt
 				var sqlUpdateQuery string
 				if gruendungsdatum == "" {
 				    sqlUpdateQuery = `
 						UPDATE organisation SET 
 							name = '` + EscapeTick(club.Name) + `',
-							vkz = '` + EscapeTick(club.Club_NR) + `',
+							adress = '` + strconv.Itoa(addressID) + `',
+							adristperson = 0` + `,
+							vkz = '` + EscapeTick(club.Club_NR[0:5]) + `',
+							verband = '` + EscapeTick(string(club.Club_NR[0])) + `',
+							unterverband = '` + EscapeTick(string(club.Club_NR[1])) + `',
+							bezirk = '` + EscapeTick(string(club.Club_NR[2])) + `',
+							verein = '` + EscapeTick(club.Club_NR[3:5]) + `',
 							istAbteilung = '` + ClubTypeStringToistAbteilung(club.Club_Type) + `'
 						WHERE uuid = '` + club.UUID.String() + `'
 					`
@@ -1289,7 +1329,13 @@ func putDTOClub(c *gin.Context) {
 				    sqlUpdateQuery = `
 						UPDATE organisation SET 
 							name = '` + EscapeTick(club.Name) + `',
-							vkz = '` + EscapeTick(club.Club_NR) + `',
+							adress = '` + strconv.Itoa(addressID) + `',
+							adristperson = 0` + `,
+							vkz = '` + EscapeTick(club.Club_NR[0:5]) + `',
+							verband = '` + EscapeTick(string(club.Club_NR[0])) + `',
+							unterverband = '` + EscapeTick(string(club.Club_NR[1])) + `',
+							bezirk = '` + EscapeTick(string(club.Club_NR[2])) + `',
+							verein = '` + EscapeTick(club.Club_NR[3:5]) + `',
 							grundungsdatum = '` + gruendungsdatum + `',	
 							istAbteilung = '` + ClubTypeStringToistAbteilung(club.Club_Type) + `'
 						WHERE uuid = '` + club.UUID.String() + `'
@@ -1309,6 +1355,63 @@ func putDTOClub(c *gin.Context) {
 				AbortWithStatusJSON(c, 500, errors.New("panic, more than 1 club with same uuid: "+myUuid.String()))
 				return
 			}
+			/*
+			-- mitgliedschaftOrganisation speichern
+			var idOrganisation string
+			sqlSelectQuery string = `select id from organisation where uuid = '` + myUuid.String() + `'`
+			errDBExec = db.QueryRow(sqlSelectQuery).Scan(&idOrganisation)
+			log.Info(sqlSelectQuery)
+
+			if errDBExec != nil {
+				AbortWithStatusJSON(c, 500, err.Error())
+				return
+			} else {
+			
+				-- passender Bezirk suchen
+				sqlSelectQuery = `select id from organisation where 
+								  verband = '` + EscapeTick(string(club.Club_NR[0])) + `' and
+								  unterverband = '` + EscapeTick(string(club.Club_NR[1])) + `' and
+								  bezirk = '` + EscapeTick(string(club.Club_NR[2])) + `' and
+								  organisationsart = 40
+								 `
+			var idParent string
+			errDBExec = db.QueryRow(sqlSelectQuery).Scan(&idParent)
+			log.Info(sqlSelectQuery)
+
+			if errDBExec != nil {
+				log.error(err.Error())
+				-- Unterverband suchen
+				return
+			} else {
+				-- Bezirk gefunden, mitgliedschaftOrganisation suchen
+			    var idMitgliedschaftOrganisation string
+				sqlSelectQuery = `select id from mitgliedschaftOrganisation where
+								  organisation = '` + idOrganisation + `' and
+								  parent = '` + idParent + `'
+				errDBExec = db.QueryRow(sqlSelectQuery).Scan(&idMitgliedschaftOrganisation)
+				log.Info(sqlSelectQuery)
+				if errDBExec != nil {
+				    -- mitgliedschaftOrganisation neu anlegen
+					var sqlInsertQuery string
+					sqlInsertQuery = `insert into mitgliedschaftOrganisation (
+										organisation,
+										idParent,
+										von)
+									  values (
+										'` + idOrganisation +
+										`', '` + idParent +
+										`', CURRENT_DATE() )
+									 `
+					log.Infoln(sqlInsertQuery)
+
+					_, err5 := db.Exec(sqlInsertQuery)
+
+					if err3 != nil {
+						log.Error(err5.Error())
+					}
+				}
+			}
+			*/
 		}
 	} else {
 		AbortWithStatusJSON(c, 400, errors.New("uuid is not valid"+club.UUID.String()))
