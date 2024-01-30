@@ -426,6 +426,7 @@ func ReplaceSpecialCharacters(myString string) string {
 	// neue Konvertierungen
 	myString = strings.ReplaceAll(myString, "\xC2\x96", " ")
 	myString = strings.ReplaceAll(myString, "\u009a", "")
+	myString = strings.ReplaceAll(myString, "\xc2\x9e", "s")
 	
 	return myString
 }
@@ -1245,67 +1246,69 @@ func putDTOClub(c *gin.Context) {
 
 				// TODO, extend this please with missing attributes => erledigt
 				var sqlInsertQuery string
-				if gruendungsdatum == "" {
-				    sqlInsertQuery = `
-						INSERT INTO organisation (
-							uuid,
-							name, 
-							adress,
-							adristperson,
-							vkz,
-							verband,
-							unterverband,
-							bezirk,
-							verein,
-							istAbteilung)
-						VALUES ('` + club.UUID.String() +
-						`', '` + EscapeTick(club.Name) +
-						`', `  + strconv.Itoa(addressID) +
-						`, `   + strconv.Itoa(0) +
-						`, '`  + EscapeTick(club.Club_NR[0:5]) +
-						`', '` + EscapeTick(string(club.Club_NR[0])) +
-						`', '` + EscapeTick(string(club.Club_NR[1])) +
-						`', '` + EscapeTick(string(club.Club_NR[2])) +
-						`', '` + EscapeTick(club.Club_NR[3:5]) +
-						`', `  + ClubTypeStringToistAbteilung(club.Club_Type) + `)
-					`
-				} else {
-				    sqlInsertQuery = `
-						INSERT INTO organisation (
-							uuid,
-							name, 
-							adress,
-							adristperson,
-							vkz,
-							verband,
-							unterverband,
-							bezirk,
-							verein,
-							grundungsdatum,
-							istAbteilung)
-						VALUES ('` + club.UUID.String() +
-						`', '` + EscapeTick(club.Name) +
-						`', `  + strconv.Itoa(addressID) +
-						`, `   + strconv.Itoa(0) +
-						`, '`  + EscapeTick(club.Club_NR[0:5]) +
-						`', '` + EscapeTick(string(club.Club_NR[0])) +
-						`', '` + EscapeTick(string(club.Club_NR[1])) +
-						`', '` + EscapeTick(string(club.Club_NR[2])) +
-						`', '` + EscapeTick(club.Club_NR[3:5]) +
-						`', '` + gruendungsdatum +
-						`', `  + ClubTypeStringToistAbteilung(club.Club_Type) + `)
-					`
-				}
-				log.Infoln(sqlInsertQuery)
+				if len(club.Club_NR) >= 5 {
+					if gruendungsdatum == "" {
+						sqlInsertQuery = `
+							INSERT INTO organisation (
+								uuid,
+								name, 
+								adress,
+								adristperson,
+								vkz,
+								verband,
+								unterverband,
+								bezirk,
+								verein,
+								istAbteilung)
+							VALUES ('` + club.UUID.String() +
+							`', '` + EscapeTick(club.Name) +
+							`', `  + strconv.Itoa(addressID) +
+							`, `   + strconv.Itoa(0) +
+							`, '`  + EscapeTick(club.Club_NR[0:5]) +
+							`', '` + EscapeTick(string(club.Club_NR[0])) +
+							`', '` + EscapeTick(string(club.Club_NR[1])) +
+							`', '` + EscapeTick(string(club.Club_NR[2])) +
+							`', '` + EscapeTick(club.Club_NR[3:5]) +
+							`', `  + ClubTypeStringToistAbteilung(club.Club_Type) + `)
+						`
+					} else {
+						sqlInsertQuery = `
+							INSERT INTO organisation (
+								uuid,
+								name, 
+								adress,
+								adristperson,
+								vkz,
+								verband,
+								unterverband,
+								bezirk,
+								verein,
+								grundungsdatum,
+								istAbteilung)
+							VALUES ('` + club.UUID.String() +
+							`', '` + EscapeTick(club.Name) +
+							`', `  + strconv.Itoa(addressID) +
+							`, `   + strconv.Itoa(0) +
+							`, '`  + EscapeTick(club.Club_NR[0:5]) +
+							`', '` + EscapeTick(string(club.Club_NR[0])) +
+							`', '` + EscapeTick(string(club.Club_NR[1])) +
+							`', '` + EscapeTick(string(club.Club_NR[2])) +
+							`', '` + EscapeTick(club.Club_NR[3:5]) +
+							`', '` + gruendungsdatum +
+							`', `  + ClubTypeStringToistAbteilung(club.Club_Type) + `)
+						`
+					}
+					log.Infoln(sqlInsertQuery)
 
-				_, err3 := db.Exec(sqlInsertQuery)
+					_, err3 := db.Exec(sqlInsertQuery)
 
-				if err3 != nil {
-					AbortWithStatusJSON(c, 400, err3.Error())
-					return
-				} else {
-					CJSON(c, 200, club)
-					return
+					if err3 != nil {
+						AbortWithStatusJSON(c, 400, err3.Error())
+						return
+					} else {
+						CJSON(c, 200, club)
+						return
+					}
 				}
 			} else if strings.Compare(count, "1") == 0 { // update
 
