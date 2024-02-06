@@ -2079,6 +2079,8 @@ func putDTOPlayerLicense(c *gin.Context) {
 						UPDATE mitgliedschaft set 
 							person = ` + strconv.Itoa(person_id) + `,
 							organisation = ` + strconv.Itoa(organisation_id) + `,
+							von = null,
+							bis = null,
 							stat1 = ` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) + `,
 							spielernummer = ` + strconv.Itoa(playerlicense.Member_Nr) + `
 						WHERE uuid = '` + playerlicense.UUID.String() + `'
@@ -2088,6 +2090,7 @@ func putDTOPlayerLicense(c *gin.Context) {
 						UPDATE mitgliedschaft set 
 							person = ` + strconv.Itoa(person_id) + `,
 							organisation = ` + strconv.Itoa(organisation_id) + `,
+							von = null,
 							bis = '` + untilStr + `',
 							stat1 = ` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) + `,
 							spielernummer = ` + strconv.Itoa(playerlicense.Member_Nr) + `
@@ -2099,6 +2102,7 @@ func putDTOPlayerLicense(c *gin.Context) {
 							person = ` + strconv.Itoa(person_id) + `,
 							organisation = ` + strconv.Itoa(organisation_id) + `,
 							von = '` + fromStr + `',
+							bis = null,
 							stat1 = ` + strconv.Itoa(int(getLicenseStateFromString(playerlicense.License_State))) + `,
 							spielernummer = ` + strconv.Itoa(playerlicense.Member_Nr) + `
 						WHERE uuid = '` + playerlicense.UUID.String() + `'
@@ -2380,7 +2384,9 @@ func putDTOClubOfficial(c *gin.Context) {
 							organisation = ` + strconv.Itoa(organisation_id) + `,
 							person = ` + strconv.Itoa(person_id) + `,
 							funktion = ` + funktion + `,
-							funktionsalias = '` + EscapeTick(clubofficial.Role_Name) + `'
+							funktionsalias = '` + EscapeTick(clubofficial.Role_Name) + `',
+							von = null,
+							bis = null
 						WHERE uuid = '` + clubofficial.UUID.String() + `'
 					`
 				} else if fromStr == "" {
@@ -2390,6 +2396,7 @@ func putDTOClubOfficial(c *gin.Context) {
 							person = ` + strconv.Itoa(person_id) + `,
 							funktion = ` + funktion + `,
 							funktionsalias = '` + EscapeTick(clubofficial.Role_Name) + `',
+							von = null,
 							bis = '` + untilStr + `'
 						WHERE uuid = '` + clubofficial.UUID.String() + `'
 					`
@@ -2400,7 +2407,8 @@ func putDTOClubOfficial(c *gin.Context) {
 							person = ` + strconv.Itoa(person_id) + `,
 							funktion = ` + funktion + `,
 							funktionsalias = '` + EscapeTick(clubofficial.Role_Name) + `',
-							von = '` + fromStr + `'
+							von = '` + fromStr + `',
+							bis = null
 						WHERE uuid = '` + clubofficial.UUID.String() + `'
 					`
 				} else {
