@@ -1309,47 +1309,55 @@ func putDTOClub(c *gin.Context) {
 						CJSON(c, 200, club)
 						return
 					}
+				} else {
+					CJSON(c, 200, club)
+					return
 				}
 			} else if strings.Compare(count, "1") == 0 { // update
 
 				// TODO, extend this please with missing attributes => erledigt
 				var sqlUpdateQuery string
-				if gruendungsdatum == "" {
-				    sqlUpdateQuery = `
-						UPDATE organisation SET 
-							name = '` + EscapeTick(club.Name) + `',
-							adress = '` + strconv.Itoa(addressID) + `',
-							adristperson = 0` + `,
-							vkz = '` + EscapeTick(club.Club_NR[0:5]) + `',
-							verband = '` + EscapeTick(string(club.Club_NR[0])) + `',
-							unterverband = '` + EscapeTick(string(club.Club_NR[1])) + `',
-							bezirk = '` + EscapeTick(string(club.Club_NR[2])) + `',
-							verein = '` + EscapeTick(club.Club_NR[3:5]) + `',
-							istAbteilung = '` + ClubTypeStringToistAbteilung(club.Club_Type) + `'
-						WHERE uuid = '` + club.UUID.String() + `'
-					`
-				} else {
-				    sqlUpdateQuery = `
-						UPDATE organisation SET 
-							name = '` + EscapeTick(club.Name) + `',
-							adress = '` + strconv.Itoa(addressID) + `',
-							adristperson = 0` + `,
-							vkz = '` + EscapeTick(club.Club_NR[0:5]) + `',
-							verband = '` + EscapeTick(string(club.Club_NR[0])) + `',
-							unterverband = '` + EscapeTick(string(club.Club_NR[1])) + `',
-							bezirk = '` + EscapeTick(string(club.Club_NR[2])) + `',
-							verein = '` + EscapeTick(club.Club_NR[3:5]) + `',
-							grundungsdatum = '` + gruendungsdatum + `',	
-							istAbteilung = '` + ClubTypeStringToistAbteilung(club.Club_Type) + `'
-						WHERE uuid = '` + club.UUID.String() + `'
-					`
-				}
-				log.Infoln(sqlUpdateQuery)
+				if len(club.Club_NR) >= 5 {
+					if gruendungsdatum == "" {
+						sqlUpdateQuery = `
+							UPDATE organisation SET 
+								name = '` + EscapeTick(club.Name) + `',
+								adress = '` + strconv.Itoa(addressID) + `',
+								adristperson = 0` + `,
+								vkz = '` + EscapeTick(club.Club_NR[0:5]) + `',
+								verband = '` + EscapeTick(string(club.Club_NR[0])) + `',
+								unterverband = '` + EscapeTick(string(club.Club_NR[1])) + `',
+								bezirk = '` + EscapeTick(string(club.Club_NR[2])) + `',
+								verein = '` + EscapeTick(club.Club_NR[3:5]) + `',
+								istAbteilung = '` + ClubTypeStringToistAbteilung(club.Club_Type) + `'
+							WHERE uuid = '` + club.UUID.String() + `'
+						`
+					} else {
+						sqlUpdateQuery = `
+							UPDATE organisation SET 
+								name = '` + EscapeTick(club.Name) + `',
+								adress = '` + strconv.Itoa(addressID) + `',
+								adristperson = 0` + `,
+								vkz = '` + EscapeTick(club.Club_NR[0:5]) + `',
+								verband = '` + EscapeTick(string(club.Club_NR[0])) + `',
+								unterverband = '` + EscapeTick(string(club.Club_NR[1])) + `',
+								bezirk = '` + EscapeTick(string(club.Club_NR[2])) + `',
+								verein = '` + EscapeTick(club.Club_NR[3:5]) + `',
+								grundungsdatum = '` + gruendungsdatum + `',	
+								istAbteilung = '` + ClubTypeStringToistAbteilung(club.Club_Type) + `'
+							WHERE uuid = '` + club.UUID.String() + `'
+						`
+					}
+					log.Infoln(sqlUpdateQuery)
 
-				_, err4 := db.Exec(sqlUpdateQuery)
-				if err4 != nil {
-					AbortWithStatusJSON(c, 400, err4.Error())
-					return
+					_, err4 := db.Exec(sqlUpdateQuery)
+					if err4 != nil {
+						AbortWithStatusJSON(c, 400, err4.Error())
+						return
+					} else {
+						CJSON(c, 200, club)
+						return
+					}
 				} else {
 					CJSON(c, 200, club)
 					return
