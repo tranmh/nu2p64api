@@ -507,11 +507,11 @@ type DTOClubOfficial struct {
 }
 
 type DTOFederation struct {
-	UUID         uuid.UUID `json:"uuid"`
-	Fedration_NR string    `json:"fedreation-nr"`
-	Name         string    `json:"name"`
-	NickName     string    `json:"nickname"`
-	Region_UUID  uuid.UUID `json:"region-uuid"`
+	UUID          uuid.UUID `json:"uuid"`
+	Federation_NR string    `json:"federation-nr"`
+	Name          string    `json:"name"`
+	NickName      string    `json:"nickname"`
+	Region_UUID   uuid.UUID `json:"region-uuid"`
 }
 
 type DTOPerson struct {
@@ -959,7 +959,7 @@ func getDTOFederation(c *gin.Context) {
 		err := db.QueryRow("SELECT name, vkz, kurzname FROM `organisation` where uuid = ?", myUuid).
 			Scan(
 				&federation.Name,
-				&federation.Fedration_NR,
+				&federation.Federation_NR,
 				&federation.NickName,
 			)
 
@@ -1024,7 +1024,7 @@ func putDTOFederation(c *gin.Context) {
 						kurzname)
 					VALUES ('` + federation.UUID.String() +
 					`', '` + EscapeTick(federation.Name) +
-					`', '` + EscapeTick(federation.Fedration_NR) +
+					`', '` + EscapeTick(federation.Federation_NR) +
 					`', '` + EscapeTick(federation.NickName) + `')
 				`
 				log.Infoln(sqlInsertQuery)
@@ -1043,7 +1043,7 @@ func putDTOFederation(c *gin.Context) {
 				var sqlUpdateQuery string = `
 					UPDATE organisation set 
 						name = '` + EscapeTick(federation.Name) + `',
-						vkz = '` + EscapeTick(federation.Fedration_NR) + `',
+--						vkz = '` + EscapeTick(federation.Federation_NR) + `',
 						kurzname = '` + EscapeTick(federation.NickName) + `'
 					WHERE uuid = '` + federation.UUID.String() + `'
 				`
