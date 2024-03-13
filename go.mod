@@ -5,19 +5,20 @@ go 1.20
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.7.1
-	github.com/golang-jwt/jwt/v5 v5.2.0
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/joho/godotenv v1.5.1
+	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
+	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
-	github.com/natefinch/lumberjack v2.0.0+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
 require (
@@ -42,7 +43,7 @@ require (
 	golang.org/x/crypto v0.17.0
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
-	golang.org/x/text v0.14.0
-	google.golang.org/protobuf v1.30.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
