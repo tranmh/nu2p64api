@@ -660,7 +660,6 @@ func TestGetSportAddressUUIDs(t *testing.T) {
 // loop. An error raised while iterating (e.g. a dropped connection after the
 // first row) is swallowed and a truncated list is returned with a nil error.
 func TestGetSportAddressUUIDsIterationError(t *testing.T) {
-	t.Skip("aqaa: open bug, see report")
 	iterErr := errors.New("connection reset while reading rows")
 	useFakeDB(t, func(string, []driver.NamedValue) fakeResult {
 		return fakeResult{
