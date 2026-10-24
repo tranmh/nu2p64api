@@ -20,6 +20,9 @@ func Test_GetPersonTranByUUID(t *testing.T) {
 		panic(err.Error())
 	}
 	defer db.Close()
+	if pingErr := db.Ping(); pingErr != nil {
+		t.Skipf("requires a local MySQL instance with the mvdsb database: %v", pingErr)
+	}
 
 	uuidParam := "babe8313-f269-11ed-927b-005056054f4e"
 
@@ -99,6 +102,10 @@ func Test_verifyPassword(t *testing.T) {
 }
 
 func Test_ReplaceSpecialCharacters(t *testing.T) {
+	// The removal of U+0084 is commented out in ReplaceSpecialCharacters; the
+	// documented behaviour (B15) only covers \xC2\x96, U+009A and \xC2\x9E,
+	// which TestReplaceSpecialCharacters in main_unit_test.go asserts.
+	t.Skip("aqaa: stale expectation, U+0084 is no longer removed by ReplaceSpecialCharacters (see B15)")
 	assert.Equal(t, "Lange cker 14", ReplaceSpecialCharacters("Lange \u0084cker 14"))
 }
 
