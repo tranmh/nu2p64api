@@ -433,6 +433,8 @@ func ReplaceSpecialCharacters(myString string) string {
 
 func EscapeTick(input string) string {
 	input = ReplaceSpecialCharacters(input)
+	// MySQL treats a backslash as an escape character: escape it first
+	input = strings.ReplaceAll(input, "\\", "\\\\")
 	return strings.ReplaceAll(input, "'", "\\'")
 }
 
@@ -1098,6 +1100,9 @@ func getSportAddressUUIDs(organisationId int) ([]uuid.UUID, error) {
 				result = append(result, uuid)
 			}
 		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return result, nil
