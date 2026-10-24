@@ -1101,6 +1101,9 @@ func getSportAddressUUIDs(organisationId int) ([]uuid.UUID, error) {
 			}
 		}
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	return result, nil
 }
