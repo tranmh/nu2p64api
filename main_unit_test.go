@@ -359,7 +359,6 @@ func TestEscapeTickKeepsValueInsideLiteral(t *testing.T) {
 // backslash swallows the closing quote, and `\'` becomes `\\'` which closes the
 // literal. B15 documents the quote-only escaping, but it is not safe for MySQL.
 func TestEscapeTickBackslashInjection(t *testing.T) {
-	t.Skip("aqaa: open bug, see report")
 	for _, in := range []string{`abc\`, `\' OR 1=1 -- `, `C:\temp\`} {
 		t.Run(in, func(t *testing.T) {
 			assertEscapedStaysInsideLiteral(t, in)
