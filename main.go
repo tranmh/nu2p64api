@@ -433,6 +433,8 @@ func ReplaceSpecialCharacters(myString string) string {
 
 func EscapeTick(input string) string {
 	input = ReplaceSpecialCharacters(input)
+	// MySQL treats a backslash as an escape character: escape it first
+	input = strings.ReplaceAll(input, "\\", "\\\\")
 	return strings.ReplaceAll(input, "'", "\\'")
 }
 
