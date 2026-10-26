@@ -88,6 +88,22 @@ func FuzzReplaceSpecialCharacters(f *testing.F) {
 	})
 }
 
+// TestReplaceSpecialCharactersRemovalCreatesSequence is the regression test for
+// fuzz finding F2: removing "\u009a" from "\xC2\xC2\x9a\x96" joins the
+// remaining bytes into "\xC2\x96", which the result must not contain.
+func TestReplaceSpecialCharactersRemovalCreatesSequence(t *testing.T) {
+	input := "\xC2\xC2\x9a\x96"
+	out := ReplaceSpecialCharacters(input)
+	for _, seq := range []string{"\xC2\x96", "\u009a", "\xc2\x9e"} {
+		if strings.Contains(out, seq) {
+			t.Errorf("ReplaceSpecialCharacters(%q) = %q still contains %q", input, out, seq)
+		}
+	}
+	if again := ReplaceSpecialCharacters(out); again != out {
+		t.Errorf("ReplaceSpecialCharacters is not idempotent for %q: once %q, twice %q", input, out, again)
+	}
+}
+
 // FuzzCivilTimeJSON checks that a date accepted by UnmarshalJSON is marshalled
 // back to the same "YYYY-MM-DD" string and survives a second round trip.
 func FuzzCivilTimeJSON(f *testing.F) {
