@@ -433,6 +433,7 @@ func ReplaceSpecialCharacters(myString string) string {
 
 func EscapeTick(input string) string {
 	input = ReplaceSpecialCharacters(input)
+	input = strings.ReplaceAll(input, "\\", "\\\\")
 	return strings.ReplaceAll(input, "'", "\\'")
 }
 
