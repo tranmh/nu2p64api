@@ -424,15 +424,22 @@ func ReplaceSpecialCharacters(myString string) string {
 	//myString = strings.ReplaceAll(myString, "\xC3", "ß")
 	
 	// neue Konvertierungen
-	myString = strings.ReplaceAll(myString, "\xC2\x96", " ")
-	myString = strings.ReplaceAll(myString, "\u009a", "")
-	myString = strings.ReplaceAll(myString, "\xc2\x9e", "s")
-	
-	return myString
+	// wiederholen, bis sich nichts mehr aendert: das Entfernen von "\u009a"
+	// kann z.B. aus "\xC2\xC2\x9a\x96" wieder "\xC2\x96" machen
+	for {
+		replaced := strings.ReplaceAll(myString, "\xC2\x96", " ")
+		replaced = strings.ReplaceAll(replaced, "\u009a", "")
+		replaced = strings.ReplaceAll(replaced, "\xc2\x9e", "s")
+		if replaced == myString {
+			return myString
+		}
+		myString = replaced
+	}
 }
 
 func EscapeTick(input string) string {
 	input = ReplaceSpecialCharacters(input)
+	input = strings.ReplaceAll(input, "\\", "\\\\")
 	return strings.ReplaceAll(input, "'", "\\'")
 }
 
