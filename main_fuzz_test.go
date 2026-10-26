@@ -49,6 +49,25 @@ func FuzzEscapeTick(f *testing.F) {
 	})
 }
 
+// TestEscapeTickBackslashQuote is the regression test for fuzz finding F1: a
+// backslash before the quote must be escaped too, otherwise MySQL reads `\\`
+// as one backslash and the following quote ends the string literal.
+func TestEscapeTickBackslashQuote(t *testing.T) {
+	input := `\'`
+	out := EscapeTick(input)
+	for i := 0; i < len(out); i++ {
+		switch out[i] {
+		case '\\':
+			if i+1 >= len(out) {
+				t.Fatalf("EscapeTick(%q) = %q ends in an unescaped backslash that would escape the closing quote", input, out)
+			}
+			i++
+		case '\'':
+			t.Fatalf("EscapeTick(%q) = %q contains an unescaped quote at byte %d", input, out, i)
+		}
+	}
+}
+
 // FuzzReplaceSpecialCharacters checks that the result contains none of the
 // sequences the function replaces, so applying it again changes nothing.
 func FuzzReplaceSpecialCharacters(f *testing.F) {
