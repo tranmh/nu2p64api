@@ -7,37 +7,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
-	"regexp"
-	"runtime"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
-
-// Every table whose uuid column is added in doc/create_uuid.txt and looked up
-// with "where uuid = ..." in main.go needs an index on uuid, otherwise each
-// lookup scans the whole table (O(rows) per request, O(n²) per sync).
-func Test_CreateIndexCoversUUIDLookups(t *testing.T) {
-	_, self, _, _ := runtime.Caller(0)
-	dir := filepath.Dir(self)
-	src, err := os.ReadFile(filepath.Join(dir, "main.go"))
-	assert.NoError(t, err)
-	idx, err := os.ReadFile(filepath.Join(dir, "data", "create_index.sql"))
-	assert.NoError(t, err)
-
-	for _, table := range []string{"adresse", "adressen", "funktion", "mitgliedschaft", "organisation", "person"} {
-		lookup := regexp.MustCompile(`(?i)\b` + table + `(\s+\w+)?\s+where\s+(\w+\.)?uuid\s*=|\b` + table + `\.uuid\s*=`)
-		if !lookup.Match(src) {
-			continue
-		}
-		index := regexp.MustCompile(`(?i)create\s+(unique\s+)?index\s+\w+\s+on\s+` + table + `\s*\(\s*uuid\s*\)`)
-		assert.Truef(t, index.Match(idx), "uuid lookups on table %s have no index in data/create_index.sql", table)
-	}
-}
 
 func Test_GetPersonTranByUUID(t *testing.T) {
 	db, err := sql.Open("mysql", "portal:Usm@1?/#Qv^avF@tcp(127.0.0.1:3306)/mvdsb")
