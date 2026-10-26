@@ -82,6 +82,24 @@ func Test_validateDTOAddress(t *testing.T) {
 
 }
 
+func Test_validateDTOAddress_PhoneRegexNotCompiledPerCall(t *testing.T) {
+	var address DTOAddress
+	address.Phone_Mobile = "+49 171 1234567"
+	address.Phone_Home = "0711 123456"
+	address.Phone_Work = "(0711) 123456-7"
+
+	result, err := validateDTOAddress(address)
+	assert.True(t, result)
+	assert.NoError(t, err)
+
+	// the phone pattern is constant; compiling it costs hundreds of allocations,
+	// matching three short numbers against a precompiled regexp only a few
+	allocs := testing.AllocsPerRun(100, func() {
+		validateDTOAddress(address)
+	})
+	assert.Less(t, allocs, 20.0, "validateDTOAddress allocates %v times per call; the phone regexp is compiled on every call", allocs)
+}
+
 func Test_EscapeTick(t *testing.T) {
 	fmt.Println(EscapeTick("O'Connor"))
 }
